@@ -2,7 +2,7 @@
 // (roteiro.md) e o guia (docs/guia-de-producao.md). Cada bloco é uma função do tempo f.
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import {Backdrop, Browser, Cursor, Flash, Glass, Grain, LogoFinal, Odo, ramp, Ring, ShotSeq, VideoProvider, Words} from '../../kit';
+import {Backdrop, Browser, Cursor, Flash, Glass, Grain, LogoFinal, Odo, ramp, Ring, S, ShotSeq, VideoProvider, Words} from '../../kit';
 import {ALVO, b, BRAND, CAM, M, SLUG, T, TELAS, TITULO} from './story';
 
 /** 1. Gancho: um número real que abre a pergunta do vídeo. */
@@ -15,7 +15,7 @@ const Gancho: React.FC<{f: number}> = ({f}) => {
 			<Ring x={960} y={540} at={b(M.gancho)} size={16} />
 			<div style={{position: 'absolute', left: 150, top: 300, fontFamily: BRAND.fontes.mono, fontSize: 24, letterSpacing: '0.3em', color: BRAND.cores.acento, opacity: ramp(f, b(M.numero) - 6, b(M.numero) + 4)}}>RÓTULO DO NÚMERO · FONTE</div>
 			<div style={{position: 'absolute', left: 146, top: 350}}>
-				<Odo value={v} size={210} />
+				<Odo value={v} size={210} color="#fff" />
 			</div>
 		</AbsoluteFill>
 	);
@@ -53,14 +53,13 @@ const TelaIlustrativa: React.FC = () => (
 const NoApp: React.FC<{f: number}> = ({f}) => {
 	if (f < b(M.app) - 1 || f >= b(M.final) + 6) return null;
 	const cam = T.camAt(f, CAM);
-	const ptr = T.pointerAt(f, [[M.app + 1, 700, 600], [M.clique - 0.5, ALVO.x, ALVO.y], [M.clique, ALVO.x, ALVO.y], [M.resultado + 1, 900, 500]], [M.clique]);
 	const op = ramp(f, b(M.app) - 1, b(M.app) + 6) * (1 - ramp(f, b(M.final) - 0.3, b(M.final) + 0.3));
 	return (
 		<AbsoluteFill style={{opacity: op}}>
 			<Browser cam={cam} url={`app.exemplo.com.br/#/${SLUG}`} blur={T.motionBlur(f, CAM)}>
 				{TELAS.length ? <ShotSeq keys={TELAS} w={1440} h={810} /> : <TelaIlustrativa />}
 				<Ring x={ALVO.x} y={ALVO.y} at={b(M.clique)} size={20} />
-				<Cursor x={ptr.x} y={ptr.y} z={cam.z} press={ptr.press} />
+				<Cursor x={ALVO.x} y={ALVO.y} click={b(M.clique)} from={[700, 600]} scale={1.12 / (S * cam.z)} />
 			</Browser>
 			<Glass at={M.app + 1.5} out={M.clique} l1="A virada da história" l2="numa frase curta." sub="Subtítulo com o detalhe técnico." />
 			<Glass at={M.resultado} out={M.final} l1="O resultado" l2="que o clique trouxe." />

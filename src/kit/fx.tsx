@@ -133,26 +133,6 @@ const Dig: React.FC<{v: number; h: number}> = ({v, h}) => (
 		</span>
 	</span>
 );
-/** Odômetro de número brasileiro (ponto de milhar, vírgula decimal): cada dígito rola de verdade. */
-export const Odo: React.FC<{value: number; decimals?: number; size: number; color?: string; style?: React.CSSProperties; minInt?: number; snap?: boolean}> = ({value, decimals = 0, size, color = '#fff', style, minInt = 1, snap}) => {
-	const brand = useBrand();
-	const scaled = Math.round(Math.max(0, value) * 10 ** decimals * 100) / 100;
-	const whole = Math.floor(scaled);
-	const fr = snap ? 0 : scaled - whole;
-	const s = String(whole).padStart(decimals + minInt, '0');
-	const h = size * 1.14;
-	const items: React.ReactNode[] = [];
-	for (let i = 0; i < s.length; i++) {
-		const p = s.length - 1 - i;
-		const d = Number(s[i]);
-		const lower = (whole % 10 ** p) / 10 ** p;
-		const near = p === 0 ? fr : lower >= (10 ** p - 1) / 10 ** p && fr > 0 ? fr : 0;
-		items.push(<Dig key={i} v={d + near} h={h} />);
-		if (decimals > 0 && p === decimals) items.push(<span key={`c${i}`} style={{lineHeight: `${h}px`, opacity: 0.85}}>,</span>);
-		else if (p > decimals && (p - decimals) % 3 === 0) items.push(<span key={`p${i}`} style={{lineHeight: `${h}px`, opacity: 0.85}}>.</span>);
-	}
-	return <span style={{display: 'inline-flex', fontFamily: brand.fontes.display, fontWeight: 800, fontSize: size, color, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', ...style}}>{items}</span>;
-};
 /** HUD no canto superior direito: rótulo mono e valor (ex.: relógio "07:00"). */
 export const Hud: React.FC<{at: number; out: number; label: string; children: React.ReactNode; x?: number; y?: number}> = ({at, out, label, children, x = 1860, y = 44}) => {
 	const f = useCurrentFrame();
@@ -222,38 +202,6 @@ export const Browser: React.FC<{cam: Cam; url: string; children: React.ReactNode
 				</div>
 			</div>
 		</div>
-	);
-};
-/** Cursor dentro da janela (px do app), com tamanho constante na tela e onda no clique. */
-export const Cursor: React.FC<{x: number; y: number; z: number; press?: number; o?: number}> = ({x, y, z, press = 0, o = 1}) => {
-	const brand = useBrand();
-	const rgb = hexToRgb(brand.cores.acentoEscuro).map((v) => Math.round(v * 255)).join(',');
-	if (o <= 0.01) return null;
-	return (
-		<div style={{position: 'absolute', left: x, top: y, opacity: o, transform: `scale(${1.12 / (S * z)})`, transformOrigin: '0 0', zIndex: 90}}>
-			{press > 0 && press < 1 && <div style={{position: 'absolute', left: -50 * press - 4, top: -50 * press - 4, width: 100 * press + 8, height: 100 * press + 8, borderRadius: 999, border: `4px solid rgba(${rgb},${1 - press})`}} />}
-			<svg width={28} height={34} viewBox="0 0 28 34" style={{filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))', transform: `scale(${1 - Math.sin(Math.min(1, press * 3) * Math.PI) * 0.18})`, transformOrigin: '0 0'}}>
-				<path d="M2 2 L2 27 L8.5 21 L13 31.5 L17.5 29.5 L13 19.5 L22 19.5 Z" fill="#fff" stroke="#0f172a" strokeWidth={2} strokeLinejoin="round" />
-			</svg>
-		</div>
-	);
-};
-/** Foco: escurece a janela menos a caixa, com contorno (px do app). */
-export const Spot: React.FC<{box: {x: number; y: number; w: number; h: number}; a: number; color?: string; w?: number; h?: number}> = ({box, a, color, w = 1440, h = 810}) => {
-	const brand = useBrand();
-	if (a <= 0.005) return null;
-	const id = `s${Math.round(box.x)}${Math.round(box.y)}`;
-	return (
-		<svg width={w} height={h} style={{position: 'absolute', inset: 0, zIndex: 40}}>
-			<defs>
-				<mask id={id}>
-					<rect width={w} height={h} fill="white" />
-					<rect x={box.x} y={box.y} width={box.w} height={box.h} rx={12} fill="black" />
-				</mask>
-			</defs>
-			<rect width={w} height={h} fill={`rgba(4,8,6,${a * 0.72})`} mask={`url(#${id})`} />
-			<rect x={box.x} y={box.y} width={box.w} height={box.h} rx={12} fill="none" stroke={color ?? brand.cores.acento} strokeWidth={2} opacity={Math.min(1, a * 1.5)} />
-		</svg>
 	);
 };
 /** Ondas de evento num ponto (quadro `at`, não tempo). */

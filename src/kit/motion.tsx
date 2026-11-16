@@ -227,7 +227,7 @@ export const Spot: React.FC<{v: View; r: Rect; from: number; to?: number; pad?: 
 };
 
 /** Cursor que chega em arco ao ponto (tela), afunda no clique e solta uma onda. */
-export const Cursor: React.FC<{x: number; y: number; click: number; from?: [number, number]}> = ({x, y, click, from = [x + 300, y + 220]}) => {
+export const Cursor: React.FC<{x: number; y: number; click: number; from?: [number, number]; scale?: number}> = ({x, y, click, from = [x + 300, y + 220], scale = 1}) => {
 	const f = useCurrentFrame();
 	const t = useMotion();
 	if (f < click - 28 || f > click + 30) return null;
@@ -241,8 +241,8 @@ export const Cursor: React.FC<{x: number; y: number; click: number; from?: [numb
 	const vis = ramp(f, click - 28, click - 20) * (1 - ramp(f, click + 20, click + 30));
 	return (
 		<div style={{position: 'absolute', inset: 0, transform: 'translateZ(200px)'}}>
-			{f >= click && <div style={{position: 'absolute', left: x - 36 * press, top: y - 36 * press, width: 72 * press, height: 72 * press, borderRadius: '50%', border: `3px solid ${t.accent}`, opacity: 1 - press}} />}
-			<svg width="34" height="40" viewBox="0 0 34 40" style={{position: 'absolute', left: px - 4, top: py - 3, opacity: vis, transform: `scale(${squash}) rotate(${(1 - u) * -14}deg)`, transformOrigin: '4px 3px', filter: `drop-shadow(0 6px 10px rgba(${t.shadowRgb},0.3))`}}>
+			{f >= click && <div style={{position: 'absolute', left: x - 36 * press * scale, top: y - 36 * press * scale, width: 72 * press * scale, height: 72 * press * scale, borderRadius: '50%', border: `3px solid ${t.accent}`, opacity: 1 - press}} />}
+			<svg width="34" height="40" viewBox="0 0 34 40" style={{position: 'absolute', left: px - 4, top: py - 3, opacity: vis, transform: `scale(${squash * scale}) rotate(${(1 - u) * -14}deg)`, transformOrigin: '4px 3px', filter: `drop-shadow(0 6px 10px rgba(${t.shadowRgb},0.3))`}}>
 				<path d="M4 3 L4 31 L11.5 24 L17 36 L22 33.5 L16.5 22 L27 21.5 Z" fill={t.ink} stroke="#fff" strokeWidth="2.4" strokeLinejoin="round" />
 			</svg>
 		</div>
@@ -398,18 +398,25 @@ export const Headline: React.FC<{text: React.ReactNode; y: number; size?: number
 	return <div style={{...base, opacity: k, transform: `translateY(${(1 - k) * 22}px)`, filter: k < 0.98 ? `blur(${(1 - k) * 8}px)` : undefined}}>{text}</div>;
 };
 
-/** Odômetro: cada casa só gira quando a de baixo vira, como num contador mecânico. `sep`: ponto de milhar. */
-export const Odo: React.FC<{value: number; digits: number; size: number; color?: string; sep?: boolean}> = ({value, digits, size, color, sep = true}) => {
+/**
+ * Odômetro: cada casa só gira quando a de baixo vira, como num contador mecânico. `digits` fixa o número de casas
+ * inteiras (sem ele, cresce com o valor a partir de `minInt`); `decimals` mostra casas depois da vírgula; `sep` põe
+ * o ponto de milhar.
+ */
+export const Odo: React.FC<{value: number; size: number; digits?: number; decimals?: number; minInt?: number; color?: string; sep?: boolean; style?: React.CSSProperties}> = ({value, size, digits, decimals = 0, minInt = 1, color, sep = true, style}) => {
 	const t = useMotion();
 	const lh = size * 1.02;
-	const cols = Array.from({length: digits}, (_, i) => digits - 1 - i);
+	const v = Math.max(0, value) * 10 ** decimals;
+	const ints = digits ?? Math.max(minInt, String(Math.floor(Math.max(0, value))).length);
+	const total = ints + decimals;
+	const cols = Array.from({length: total}, (_, i) => total - 1 - i);
 	return (
-		<span style={{display: 'inline-flex', fontFamily: t.display, fontWeight: 700, fontSize: size, color: color ?? t.ink, lineHeight: `${lh}px`, height: lh, overflow: 'hidden', fontVariantNumeric: 'tabular-nums'}}>
+		<span style={{display: 'inline-flex', fontFamily: t.display, fontWeight: 700, fontSize: size, color: color ?? t.ink, lineHeight: `${lh}px`, height: lh, overflow: 'hidden', fontVariantNumeric: 'tabular-nums', ...style}}>
 			{cols.map((p) => {
-				const q = value / 10 ** p;
+				const q = v / 10 ** p;
 				const frac = q % 1;
 				const pos = p === 0 ? q % 10 : (Math.floor(q) % 10) + Math.max(0, (frac - 0.9) / 0.1);
-				const hide = p > 0 && Math.floor(q) === 0 && value < 10 ** p;
+				const hide = p >= decimals + minInt && Math.floor(q) === 0;
 				return (
 					<React.Fragment key={p}>
 						<span style={{display: 'inline-block', height: lh, opacity: hide ? 0.12 : 1}}>
@@ -421,7 +428,8 @@ export const Odo: React.FC<{value: number; digits: number; size: number; color?:
 								))}
 							</span>
 						</span>
-						{sep && p === 3 && <span>.</span>}
+						{sep && p === decimals + 3 && <span>.</span>}
+						{decimals > 0 && p === decimals && <span>,</span>}
 					</React.Fragment>
 				);
 			})}
