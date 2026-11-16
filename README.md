@@ -48,7 +48,8 @@ src/
   brands/      marcas: cores, céus de fundo, fontes, logo (agrotrace, pectrace; crie a sua copiando uma)
   kit/         linguagem visual: timeline em tempos de música, fundos, legendas, odômetro, janela do app,
                cursor, foco, Lottie, telas reais, fecho com o logo, câmera 2D sobre a captura (plano.tsx),
-               grãos com significado (grains.tsx)
+               grãos com significado (grains.tsx), sistema de movimento: interface em camadas 3D, transições,
+               peça, contornos, odômetro, legendas (motion.tsx)
   videos/
     _modelo/             esqueleto copiado por `bun run novo`
     exemplo-validacao/   vídeo completo de referência (telas reais, Lottie, narração)

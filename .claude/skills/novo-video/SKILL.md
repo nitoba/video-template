@@ -56,6 +56,10 @@ Se houver narração, siga a skill `narracao`: grave, rode `PLAN_ONLY=1 bun run 
 - Captura real com câmera contínua: `Plano`, `planoToScreen` e `viewMatching` (`src/kit/plano.tsx`).
   Fundo da marca: `Paper` com `cores.papel`. Partículas só com origem e destino que signifiquem algo:
   `GrainCanvas` e `sampleShapePoints` (`src/kit/grains.tsx`).
+- Movimento (obrigatório; tela parada com zoom e contorno lê como amador): `src/kit/motion.tsx`. Cada captura
+  entra num `Stage` com `orbit` e vira camadas (`Layers`); os trechos citados ganham `Spot` com o `z` da camada e,
+  quando são o assunto, uma `Peca`. Transições direcionais entre cenas (`enter`/`exit`). Paleta do vídeo no
+  `MotionProvider`. Legendas com `Legendas`.
 - Chaves de câmera, cursor e rolagem em **tempo crescente** (confira depois de mexer em marcos).
 - Animações de apoio: skill `animacao-lottie`.
 - Trilha: edite `trilha.mjs` (tema, curva de energia, um silêncio, cliques nos marcos).

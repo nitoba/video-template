@@ -81,8 +81,10 @@ Quem faz o vídeo age como roteirista, diretor e editor. Efeito não salva uma c
 
 ### Movimento (o que separa o vídeo profissional do amador)
 
-Referência de implementação: `src/videos/validacao-atendimentos/Video.tsx` (`Stage`, `Layers`, `Spot`, `Peca`,
-`Card`, `Headline`, `Odo`, `Cursor`).
+Componentes em `src/kit/motion.tsx`: `Stage`, `Layers`, `Spot`, `Peca`, `Cursor`, `Card`, `Headline`, `Odo`, `Dust`,
+`Legendas`, `viewAt`, `pop`, `shake`. Cores e fontes vêm do tema de movimento: por padrão saem da marca
+(`temaDaMarca`), e o vídeo troca o que quiser com `<MotionProvider theme={...}>`. Exemplo completo:
+`src/videos/validacao-atendimentos/Video.tsx`.
 
 - **A interface nunca é foto.** Recorte a captura em peças (linhas, cartões, blocos da gaveta, partes do modal) e
   ponha cada uma no espaço 3D, na sua profundidade (`Layers`). As peças entram em sequência, vindas do fundo. O
