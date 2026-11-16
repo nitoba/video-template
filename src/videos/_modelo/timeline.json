@@ -1,0 +1,21 @@
+{
+	"fps": 30,
+	"width": 1920,
+	"height": 1080,
+	"bpm": 85.7143,
+	"beat": 21,
+	"scenes": [{"id": "__SLUG__", "duration": 1260}],
+	"transitions": [],
+	"marks": {
+		"gancho": 1,
+		"numero": 2.5,
+		"virada": 10,
+		"titulo": 14,
+		"app": 22,
+		"clique": 28,
+		"resultado": 30,
+		"final": 44,
+		"logo": 48,
+		"end": 60
+	}
+}

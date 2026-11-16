@@ -1,0 +1,7 @@
+node_modules/
+out/
+# Gerados a partir do código e dos marcos (bun run trilha / narrar)
+public/*/trilha.wav
+public/*/trilha-narrada.wav
+public/*/voz/[0-9]*.wav
+.DS_Store

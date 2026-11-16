@@ -1,0 +1,34 @@
+{
+  "name": "video-template",
+  "private": true,
+  "type": "module",
+  "description": "Template para vídeos de features feitos com IA em Remotion: kit de motion, marcas, trilha sintetizada, narração e telas reais.",
+  "scripts": {
+    "dev": "remotion studio",
+    "novo": "node scripts/novo-video.mjs",
+    "trilha": "node scripts/trilha.mjs",
+    "render": "scripts/render.sh",
+    "narrar": "node scripts/narrar.mjs",
+    "folha": "scripts/folha.sh",
+    "lottie-limpar": "node scripts/lottie-limpar.mjs",
+    "tipos": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.8.2",
+    "@remotion/cli": "4.0.539",
+    "@remotion/google-fonts": "4.0.539",
+    "@remotion/lottie": "4.0.539",
+    "@remotion/three": "4.0.539",
+    "@remotion/transitions": "4.0.539",
+    "primeicons": "7.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.539",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "@types/three": "0.180.0",
+    "typescript": "5.9.3"
+  }
+}
