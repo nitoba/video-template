@@ -4,18 +4,10 @@
 	"height": 1080,
 	"bpm": 90,
 	"beat": 20,
-	"scenes": [{"id": "__SLUG__", "duration": 720}],
+	"scenes": [{"id": "__SLUG__", "duration": 300}],
 	"transitions": [],
 	"marks": {
-		"numero": 1,
-		"pergunta": 5.5,
-		"titulo": 10,
-		"app": 14.5,
-		"foco": 18.5,
-		"clique": 20.5,
-		"peca": 22.5,
-		"resultado": 25.5,
-		"fecho": 30,
-		"logo": 33
+		"inicio": 0.5,
+		"fecho": 11
 	}
 }

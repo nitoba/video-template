@@ -9,7 +9,9 @@ out=out/folha-$SLUG.jpg; tmp=out/_folha; rm -rf "$tmp"; mkdir -p "$tmp"
 if [ -n "${REBUNDLE:-}" ] || [ ! -d out/_bundle ]; then npx remotion bundle src/index.ts --out-dir=out/_bundle --log=error >/dev/null 2>&1; fi
 frames=(); for t in "$@"; do frames+=("$(python3 -c "print(round($t*$BEAT))")"); done
 printf '%s\n' "${frames[@]}" | xargs -P 3 -I{} npx remotion still out/_bundle "$SLUG" "$tmp/{}.jpg" --frame={} --image-format=jpeg --scale=0.5 --log=error
-n=${#frames[@]}; args=(); for q in "${frames[@]}"; do args+=(-i "$tmp/$q.jpg"); done
+n=${#frames[@]}
+if [ "$n" -eq 1 ]; then cp "$tmp/${frames[0]}.jpg" "$out"; rm -rf "$tmp"; echo "$out"; exit 0; fi
+args=(); for q in "${frames[@]}"; do args+=(-i "$tmp/$q.jpg"); done
 ffmpeg -v error -y "${args[@]}" -filter_complex "$(for ((i=0;i<n;i++)); do printf '[%d]' $i; done)xstack=inputs=$n:layout=$(python3 -c "
 n=$n
 print('|'.join(f'{(i%3)*960}_{(i//3)*540}' for i in range(n)))"):fill=black[v]" -map '[v]' -q:v 4 "$out"

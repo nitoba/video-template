@@ -10,15 +10,16 @@
 - **A ideia em uma frase (a frase-guia na tela):**
 - **Marca:** __BRAND__ · **Duração da prova:** 15–20 s · **Duração do vídeo:**
 
-## Roteiro
+## Estrutura (desenhada para esta história)
 
-| Tempo | Ato | Imagem (tela real, material do nicho) | Texto na tela | Som |
+- **Forma da narrativa e por que ela serve esta feature** (menu no guia, "Direção, não fórmula"; pode ser outra):
+- **Diferente dos dois últimos vídeos?** (guia, "Estruturas já usadas"): forma, abertura e fecho
+- **Abertura (o primeiro gesto que prende):**
+- **Receitas do catálogo que entram e por quê; receitas novas que este vídeo pede:**
+
+| Tempo | Momento | Imagem (tela real, material do nicho) | Texto na tela | Som |
 |---|---|---|---|---|
-| 0–4 s | Gancho | | | |
-| 4–7 s | Virada | | | |
-| 7–12 s | Revelação (o software) | | | |
-| 12–16 s | Prova | | | |
-| 16–20 s | Fecho | | | |
+| | | | | |
 
 ## Direção de arte (da marca e do nicho, não das referências)
 

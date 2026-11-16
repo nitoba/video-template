@@ -25,8 +25,9 @@ visual sai da marca e do nicho do vídeo, nunca da estética de outra marca.
    última hora costumam ser o que a pessoa quer ver.
 2. Ache o conflito nos dados reais (consultas só de leitura). Números do vídeo vêm do banco, com data.
 3. Escreva `tratamento.md` (depois do passo 3, modelo em `_modelo/tratamento.md`): para quem, o problema,
-   a ideia em uma frase, o roteiro em tabela (tempos, imagem, texto na tela, som), a direção de arte
-   derivada da marca e o princípio tirado de cada referência. Peça aprovação.
+   a ideia em uma frase, **a estrutura desenhada para esta história** (forma da narrativa, abertura, receitas e o
+   porquê; diferente dos dois últimos vídeos em "Estruturas já usadas" do guia), a tabela de tempos, a direção de
+   arte derivada da marca e o princípio tirado de cada referência. Peça aprovação.
 4. Construa uma **prova de 15 a 20 s** com o momento central e peça aprovação antes do vídeo completo.
    Só então detalhe `roteiro.md` com a narração.
 
@@ -37,10 +38,9 @@ bun install
 bun run novo <slug> --marca <agrotrace|pectrace> --titulo "Título"
 ```
 
-Isso copia `src/videos/_modelo/` para `src/videos/<slug>/` (já na linguagem aprovada: papel da marca, tela em
-camadas, órbita, peça, grãos no logo), copia a tela ilustrativa para `public/<slug>/telas/`, registra a
-composição e gera a trilha inicial. Troque em `story.ts` a `TELA`, o `ALVO` e as `FAIXAS` pela captura real e os
-recortes dela.
+Isso copia `src/videos/_modelo/` para `src/videos/<slug>/`, registra a composição e gera a trilha inicial. O
+modelo traz só a direção visual ligada (papel da marca, tema de movimento, legendas) e uma cena-exemplo: **não há
+estrutura pronta**. As cenas saem do tratamento aprovado, montadas com o kit e as receitas do catálogo do guia.
 
 ## 4. Telas reais
 
@@ -78,3 +78,4 @@ Se houver narração, siga a skill `narracao`: grave, rode `PLAN_ONLY=1 bun run 
 4. `ffprobe` (quadros, duração, áudio) e LUFS (`ffmpeg -af ebur128=peak=true`), alvo −14.
 5. Folha de contato do MP4 final, entrega dos arquivos e um resumo do que é real e do que é ilustrativo.
 6. Registre no README da pasta do vídeo (ou em `roteiro.md`) as decisões e os dados usados.
+7. Acrescente o vídeo à tabela "Estruturas já usadas" do guia (forma, abertura e fecho).

@@ -44,6 +44,7 @@ precisa vender a funcionalidade, mostrando o software de verdade. A fórmula que
 | Três direções novas em moodboard com imagens de IA (16/11/2026) | "Amador": página, direções, fontes e estilo. Trocar a identidade não era o pedido; o pedido era acabamento. |
 | Cetim escuro, plano macro e partículas copiados de Raycast, Linear e Comet (16/11/2026) | "Mais partículas e trilha não deixam o vídeo bom" e "o escuro não combina com o PecTrace". Referência é princípio, não estilo. Resolvido pela seção "Direção antes de efeito". |
 | Telas paradas com zoom pequeno e contornos (16/11/2026, versão narrada v1) | "Sem dinamicidade, sem vida, uma imagem parada com um pequeno zoom e highlights: é amador." Resolvido com o sistema de movimento (seção "Direção antes de efeito › Movimento"). |
+| Modelo com estrutura fixa para todo vídeo (16/11/2026) | "O template deve ser uma direção visual e não sempre ter a mesma estrutura, senão fica cansativo." O modelo virou uma tela limpa; a estrutura nasce no tratamento (seção "Direção, não fórmula"). |
 | Voz soletrando siglas (Validação v1) | "RAT" saiu como "R-A-T". A sigla se fala "ráti". Resolvido escrevendo a pronúncia no texto da fala (seção 6). |
 
 ## Direção antes de efeito
@@ -82,6 +83,64 @@ Quem faz o vídeo age como roteirista, diretor e editor. Efeito não salva uma c
 - Pouca quantidade e trajetória organizada (uma fita por linha, fases próximas). Muitos grãos com
   rastro longo viram riscos caóticos por cima do texto, e glow em grão denso vira borrão.
 - Os grãos agem **depois** que a câmera assenta. Dois movimentos ao mesmo tempo competem.
+
+### Direção, não fórmula
+
+O template fixa a **direção visual**: papel da marca, movimento, camadas, física, grãos com significado e o tom
+editorial. A **estrutura** de cada vídeo é desenhada no tratamento, a partir da história daquela feature. O
+`bun run novo` entrega só uma tela limpa já ligada, sem sequência pronta.
+
+- **Uma estrutura por história.** Escolha a forma que serve a feature, ou invente outra, e diga no tratamento por que
+  ela serve.
+- **Não repita a forma nem a abertura dos dois últimos vídeos** (veja "Estruturas já usadas", abaixo). Ao terminar
+  um vídeo, registre a estrutura dele lá.
+- **Receitas são peças, não sequência.** Combine, adapte ou crie receitas novas; cada uma deve dizer algo sobre a
+  feature. Uma receita usada sem motivo vira enfeite.
+
+**Formas de narrativa (menu):**
+
+| Forma | Serve quando |
+|---|---|
+| Caso real investigado | Há um erro concreto nos dados que a feature pega (um RAT, um técnico, uma data). |
+| Antes e depois | O ganho é visível ao pôr o processo antigo e o novo lado a lado. |
+| Pergunta e resposta | A feature responde a uma pergunta que o gestor já faz hoje. |
+| Um objeto atravessa o vídeo | Um documento, um animal ou uma visita passa por cada etapa do sistema. |
+| Um dia na vida | O valor está na rotina (manhã, campo, sincronização, noite). |
+| Contagem ou escala | O impacto está no volume (milhares de atendimentos, hectares, horas). |
+| Mapa ou território | A feature é espacial (propriedades, rotas, áreas). |
+| Tutorial em três gestos | O público já conhece o problema e precisa ver como se usa. |
+
+**Receitas de cena (catálogo):**
+
+| Receita | O que comunica | Onde ver |
+|---|---|---|
+| Grade de pontos que escoa | Volume; cada ponto é um item real que vai para algum lugar | `validacao-atendimentos/Video.tsx`, `AtoNumero` |
+| Objeto ejetado que vira documento | Sair do volume para um caso | `AtoRat` (ponto → ficha do RAT) |
+| Carimbo com estilhaço e tremor | Uma decisão dura (rejeitado, aprovado) | `AtoRat` (stamp e burst) |
+| Leitura que varre um documento | Conferência automática | `AtoRat` (agora) e `AtoComo` (IA lê) |
+| Zonas que se desenham num documento | O que é lido ou checado | `AtoComo` (contrato, assinaturas, texto) |
+| Ícones que caem e giram para alerta | Verificações e o resultado de cada uma | `AtoSete` |
+| Mergulho de um clique para a tela | Passar de um aviso para o sistema | `AtoEmail` |
+| Lista em camadas com linhas que voam | Uma coleção real, um item em destaque | `AtoLista` |
+| Gaveta em blocos | Abrir um detalhe | `AtoDossie`, `AtoDispensar` |
+| A peça que se ergue da tela | O dado que importa, isolado | `Peca` em `src/kit/motion.tsx` |
+| Fichas iguais com marca-texto | Repetição, cópia | `AtoFichas`; `prova-direcao/Prova.tsx`, `ActOne` |
+| Comparação ligada por grãos | Isto é igual àquilo | `AtoLado`; `prova-direcao/Prova.tsx`, `ActTwo` |
+| Formulário que se preenche e prévia | Configurar antes de rodar | `AtoAntes` |
+| Grade que acende um a um com odômetro | Um lote processado | `AtoAntes` (209) |
+| Modal do CMS em partes, trecho à frente | Configuração no back-office | `AtoCms` e `cmsLayers` |
+| Interruptor que liga | Ativar | `AtoLigar` |
+| Ciclo que gira com grãos | Processo contínuo | `AtoCiclo` |
+| Grãos que desenham o logo | Assinatura da marca | `AtoFinal`, `sampleShapePoints` |
+
+**Estruturas já usadas:**
+
+| Vídeo | Forma | Abertura | Fecho |
+|---|---|---|---|
+| Jornada (agrotrace-video) | Um dia na vida, em plano-sequência | Relógio do dia | Os 4 pings viram os 4 pontos do logo |
+| Central de Inconsistências (agrotrace-video) | Caso real | Número em odômetro | Logo de partículas |
+| Validação, prova (`prova-direcao`) | Caso real em três gestos | Frase escrita em papel | Grãos de "conferido." viram o logo |
+| Validação, narrada (`validacao-atendimentos`) | Caso real, depois como funciona, rotina do gestor e configuração | Grade de 3.736 pontos | Ciclo e logo de grãos |
 
 ### Movimento (o que separa o vídeo profissional do amador)
 
