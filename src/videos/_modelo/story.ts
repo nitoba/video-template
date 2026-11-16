@@ -1,7 +1,8 @@
 // Marca, timeline e dados do vídeo. Os marcos ficam em timeline.json, em tempos de música (beat = quadros por
-// tempo): a imagem, a trilha (trilha.mjs) e a narração (narracao.json) leem o mesmo arquivo.
+// tempo): a imagem (Video.tsx), a trilha (trilha.mjs) e a narração (narracao.json) leem o mesmo arquivo.
+// Roteiro e direção: tratamento.md. Linguagem e movimento: docs/guia-de-producao.md e src/kit/motion.tsx.
 import {BRANDS, BrandId} from '../../brands';
-import {Cam, createTimeline} from '../../kit';
+import {createTimeline, type Rect} from '../../kit';
 import tl from './timeline.json';
 
 export const SLUG = '__SLUG__';
@@ -9,19 +10,29 @@ export const TITULO = '__TITULO__';
 export const BRAND = BRANDS['__BRAND__' as BrandId] ?? BRANDS.agrotrace;
 export const T = createTimeline(tl);
 export const {M, b, TOTAL} = T;
+/** Quadro de um marco mais `sec` segundos. */
+export const at = (mark: number, sec = 0) => b(mark) + Math.round(sec * tl.fps);
+export const tela = (nome: string) => `${SLUG}/telas/${nome}.jpg`;
 
 /**
- * Capturas reais em public/<slug>/telas/ (JPEG 2x, 1440 de largura), na ordem em que aparecem:
- * [[tempo, 'slug/telas/01.jpg'], ...]. Vazio mostra uma tela ilustrativa no lugar.
+ * A captura real da tela (JPEG 2x em public/<slug>/telas/) e o tamanho dela em px. Enquanto não houver, fica a
+ * tela ilustrativa que o `bun run novo` copiou.
  */
-export const TELAS: [number, string][] = [];
-/** Ponto clicado na tela, em px da captura (medido com getBoundingClientRect na captura). */
-export const ALVO = {x: 1180, y: 118};
-
-export const CAM: [number, Cam][] = [
-	[M.app - 0.4, {x: 720, y: 405, z: 0.82, rx: 12, ry: -12}],
-	[M.app + 1.6, {x: 720, y: 405, z: 0.95, rx: 3, ry: -3}],
-	[M.clique - 0.6, {x: ALVO.x - 120, y: ALVO.y + 80, z: 1.6}],
-	[M.resultado + 1, {x: 720, y: 360, z: 1.15}],
-	[M.final - 0.2, {x: 720, y: 405, z: 0.85, rx: 10, ry: -10}],
+export const TELA = {src: tela('ilustrativa'), w: 3360, h: 2100};
+/** O trecho clicado (o botão, em px da captura). */
+export const ALVO: Rect = {x: 2460, y: 175, w: 560, h: 90};
+/**
+ * Recortes da captura que viram camadas 3D: [x, y, w, h, z]. Corte pelo que a tela tem (cabeçalho, linhas,
+ * cartões, gaveta, modal); o trecho da fala ganha z maior e vem à frente.
+ */
+export const FAIXAS: [number, number, number, number, number][] = [
+	[0, 0, 3360, 140, 20],
+	[120, 300, 3120, 250, 24],
+	[120, 600, 3120, 250, 34],
+	[120, 900, 3120, 250, 24],
+	[120, 1200, 3120, 250, 34],
+	[120, 1500, 3120, 250, 24],
+	[ALVO.x, ALVO.y, ALVO.w, ALVO.h, 110],
 ];
+/** Legendas da narração: [início, fim, texto] em segundos (`PLAN_ONLY=1 bun run narrar <slug>` dá o encaixe). */
+export const LEGENDAS: [number, number, string][] = [];

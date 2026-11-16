@@ -1,90 +1,155 @@
-// __TITULO__. Esqueleto gerado por `bun run novo`: troque cada bloco seguindo o roteiro aprovado
-// (roteiro.md) e o guia (docs/guia-de-producao.md). Cada bloco é uma função do tempo f.
-import React from 'react';
-import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import {Backdrop, Browser, Cursor, Flash, Glass, Grain, LogoFinal, Odo, ramp, Ring, S, ShotSeq, VideoProvider, Words} from '../../kit';
-import {ALVO, b, BRAND, CAM, M, SLUG, T, TELAS, TITULO} from './story';
+// __TITULO__. Esqueleto gerado por `bun run novo` na linguagem aprovada (guia, "Direção antes de efeito"): papel da
+// marca, interface em camadas 3D com câmera em órbita, transições com direção, a peça que sai da tela e grãos que
+// desenham o logo. Troque cada bloco seguindo o tratamento aprovado (tratamento.md); textos e números abaixo são
+// marcadores. Exemplo completo: src/videos/validacao-atendimentos.
+import React, {useMemo} from 'react';
+import {AbsoluteFill, random, useCurrentFrame} from 'remotion';
+import {
+	Card,
+	CardHeader,
+	Cursor,
+	Dust,
+	EASE,
+	Grain,
+	GrainCanvas,
+	type GrainSpec,
+	Headline,
+	hexToRgbTuple,
+	Icon,
+	ICONES,
+	KV,
+	type Layer,
+	Layers,
+	Legendas,
+	lerp,
+	liftOf,
+	Odo,
+	OUT,
+	Paper,
+	Peca,
+	planoToScreen,
+	pop,
+	ramp,
+	sampleShapePoints,
+	Spot,
+	Stage,
+	useMotion,
+	VideoProvider,
+	viewAt,
+} from '../../kit';
+import {ALVO, at, b, BRAND, FAIXAS, LEGENDAS, M, T, TELA, TITULO} from './story';
 
-/** 1. Gancho: um número real que abre a pergunta do vídeo. */
-const Gancho: React.FC<{f: number}> = ({f}) => {
-	if (f >= b(M.virada) + 8) return null;
-	const v = 3736 * ramp(f, b(M.numero), b(M.numero + 3.2), (x) => 1 - (1 - x) ** 3);
-	const out = ramp(f, b(M.virada) - 6, b(M.virada) + 6);
+/** 1. Gancho: um número real que abre a pergunta do vídeo, e a pergunta. */
+const Gancho: React.FC = () => {
+	const f = useCurrentFrame();
+	const m = useMotion();
+	const head = pop(f, b(M.numero));
+	const v = 3736 * ramp(f, b(M.numero), at(M.numero, 1.6), OUT);
 	return (
-		<AbsoluteFill style={{opacity: 1 - out}}>
-			<Ring x={960} y={540} at={b(M.gancho)} size={16} />
-			<div style={{position: 'absolute', left: 150, top: 300, fontFamily: BRAND.fontes.mono, fontSize: 24, letterSpacing: '0.3em', color: BRAND.cores.acento, opacity: ramp(f, b(M.numero) - 6, b(M.numero) + 4)}}>RÓTULO DO NÚMERO · FONTE</div>
-			<div style={{position: 'absolute', left: 146, top: 350}}>
-				<Odo value={v} size={210} color="#fff" />
+		<Stage from={b(M.numero) - 10} to={b(M.titulo)} enter="fade" exit="up">
+			<div style={{position: 'absolute', left: 0, right: 0, top: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, opacity: Math.min(1, head), transform: `translateY(${(1 - head) * 30}px)`}}>
+				<div style={{fontFamily: m.mono, fontSize: 22, letterSpacing: '0.24em', color: m.inkSoft}}>RÓTULO DO NÚMERO · FONTE</div>
+				<Odo value={v} digits={4} size={180} />
 			</div>
-		</AbsoluteFill>
+			<Headline text="Uma pergunta que a feature responde?" y={640} size={60} k={1} at={M.pergunta} />
+		</Stage>
 	);
 };
 
 /** 2. Título com a marca. */
-const Titulo: React.FC<{f: number}> = ({f}) => {
-	if (f < b(M.titulo) - 0.2 || f >= b(M.app)) return null;
-	const out = ramp(f, b(M.app) - 0.6, b(M.app));
+const Titulo: React.FC = () => {
+	const f = useCurrentFrame();
+	const m = useMotion();
+	const logo = pop(f, b(M.titulo));
 	const Logo = BRAND.Logo;
 	return (
-		<AbsoluteFill style={{opacity: 1 - out}}>
-			<Words text={TITULO} at={M.titulo} out={M.app} y={500} size={104} hot={[TITULO.split(' ').slice(-1)[0]]} />
-			<div style={{position: 'absolute', left: 860, bottom: 80, ...T.enter(f, M.titulo + 2.6)}}>
-				<Logo width={200} color="rgba(255,255,255,0.8)" />
+		<Stage from={b(M.titulo)} to={b(M.app)} enter="down" exit="zoom">
+			<div style={{position: 'absolute', left: 960 - 160, top: 300, opacity: Math.min(1, logo * 2), transform: `scale(${lerp(0.4, 1, logo)}) rotate(${(1 - logo) * -18}deg)`}}>
+				<Logo width={320} color={m.ink} />
 			</div>
-		</AbsoluteFill>
+			<Headline text={TITULO} y={430} size={104} k={1} at={M.titulo + 0.3} />
+			<Headline text="Uma frase que diz o que muda para quem usa." y={590} size={40} k={1} at={M.titulo + 2} font={m.ui} weight={500} color={m.inkSoft} />
+		</Stage>
 	);
 };
 
-/** Tela ilustrativa enquanto não há captura real em TELAS. */
-const TelaIlustrativa: React.FC = () => (
-	<AbsoluteFill style={{background: '#f4f4f5', fontFamily: BRAND.fontes.ui}}>
-		<div style={{height: 60, background: BRAND.cores.acentoEscuro}} />
-		<div style={{position: 'absolute', left: 32, top: 92, fontSize: 26, fontWeight: 700, color: '#18181b'}}>Troque por uma captura real</div>
-		<div style={{position: 'absolute', left: 32, top: 132, fontSize: 15, color: '#71717a'}}>public/{SLUG}/telas/01.jpg · veja docs/guia-de-producao.md, seção 4</div>
-		<div style={{position: 'absolute', left: ALVO.x - 90, top: ALVO.y - 19, width: 180, height: 38, borderRadius: 8, background: BRAND.cores.acentoEscuro, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14}}>Ação principal</div>
-		{[0, 1, 2, 3].map((i) => (
-			<div key={i} style={{position: 'absolute', left: 32, right: 32, top: 200 + i * 120, height: 100, borderRadius: 12, background: '#fff', border: '1px solid #e4e4e7'}} />
-		))}
-	</AbsoluteFill>
-);
-
-/** 3. O software resolvendo: plano-sequência na tela, com câmera, cursor e legenda. */
-const NoApp: React.FC<{f: number}> = ({f}) => {
-	if (f < b(M.app) - 1 || f >= b(M.final) + 6) return null;
-	const cam = T.camAt(f, CAM);
-	const op = ramp(f, b(M.app) - 1, b(M.app) + 6) * (1 - ramp(f, b(M.final) - 0.3, b(M.final) + 0.3));
-	return (
-		<AbsoluteFill style={{opacity: op}}>
-			<Browser cam={cam} url={`app.exemplo.com.br/#/${SLUG}`} blur={T.motionBlur(f, CAM)}>
-				{TELAS.length ? <ShotSeq keys={TELAS} w={1440} h={810} /> : <TelaIlustrativa />}
-				<Ring x={ALVO.x} y={ALVO.y} at={b(M.clique)} size={20} />
-				<Cursor x={ALVO.x} y={ALVO.y} click={b(M.clique)} from={[700, 600]} scale={1.12 / (S * cam.z)} />
-			</Browser>
-			<Glass at={M.app + 1.5} out={M.clique} l1="A virada da história" l2="numa frase curta." sub="Subtítulo com o detalhe técnico." />
-			<Glass at={M.resultado} out={M.final} l1="O resultado" l2="que o clique trouxe." />
-		</AbsoluteFill>
-	);
-};
-
-export const Video: React.FC = () => {
+/** 3. A tela: a captura vira camadas, a câmera orbita, o contorno marca o alvo, o cursor clica e a peça sai. */
+const NoApp: React.FC = () => {
 	const f = useCurrentFrame();
-	const {durationInFrames} = useVideoConfig();
+	const m = useMotion();
+	const A0 = b(M.app);
+	const cx = ALVO.x + ALVO.w / 2;
+	const cy = ALVO.y + ALVO.h / 2;
+	const v = viewAt(f, [
+		[A0, {fx: TELA.w / 2, fy: TELA.h / 2, s: 0.55}],
+		[b(M.foco) - 10, {fx: TELA.w / 2, fy: TELA.h / 2, s: 0.58}],
+		[b(M.foco) + 20, {fx: cx - 300, fy: cy + 260, s: 0.95}],
+		[b(M.resultado), {fx: cx - 300, fy: cy + 260, s: 0.98}],
+		[b(M.resultado) + 30, {fx: TELA.w / 2, fy: TELA.h / 2, s: 0.6}],
+	]);
+	const layers: Layer[] = FAIXAS.map(([x, y, w, h, z], i) => ({r: {x, y, w, h}, z, at: A0 + 4 + i * 4, from: {y: 200 + i * 20, z: -600, rx: 40, x: (i % 2 ? 1 : -1) * 60}}));
+	const alvo = planoToScreen(v, cx, cy);
 	return (
-		<VideoProvider timeline={T} brand={BRAND}>
-			<AbsoluteFill style={{background: '#000', overflow: 'hidden'}}>
-				<Backdrop keys={[[0, 'black'], [1.5, 'dark'], [M.virada, 'principal'], [M.app, 'dark'], [M.final, 'dark']]} />
-				<Gancho f={f} />
-				<Words text="Uma frase que vira a história." at={M.virada + 0.3} out={M.titulo - 0.2} y={540} size={76} hot={['vira']} />
-				<Titulo f={f} />
-				<NoApp f={f} />
-				<LogoFinal from={M.final} logo={M.logo} titulo={TITULO} destaque={[TITULO.split(' ').slice(-1)[0]]} frase="Frase de assinatura." nota="Dados ilustrativos" />
-				<Flash at={M.titulo} amt={0.35} />
-				<Grain />
-				<Sequence from={0} durationInFrames={durationInFrames}>
-					<Audio src={staticFile(`${SLUG}/trilha.wav`)} />
-				</Sequence>
-			</AbsoluteFill>
-		</VideoProvider>
+		<Stage from={A0} to={b(M.fecho)} src={TELA.src} v={v} w={TELA.w} h={TELA.h} enter="zoom" exit="fade" base={0} blur={liftOf(f, b(M.peca))} orbit={[16, -12, 6, 10]} layers={<Layers src={TELA.src} w={TELA.w} h={TELA.h} v={v} layers={layers} />}>
+			<Spot v={v} r={ALVO} from={b(M.foco)} to={b(M.peca)} z={110} />
+			<Cursor x={alvo.x} y={alvo.y} click={b(M.clique)} />
+			<Peca v={v} r={ALVO} peca={b(M.peca)} width={680} height={300}>
+				<CardHeader icon={<Icon d={ICONES.check} bg={BRAND.cores.ok} />} title="O resultado" chip="novo" tone="green" />
+				<div style={{fontFamily: m.display, fontSize: 56, fontWeight: 700, color: m.ink, marginTop: 18, lineHeight: 1}}>O que o clique trouxe</div>
+				<div style={{marginTop: 18, display: 'grid', gap: 2}}>
+					<KV k="Dado real" v="da tela, com data" />
+					<KV k="Outro dado" v="sem inventar número" />
+				</div>
+			</Peca>
+		</Stage>
 	);
 };
+
+/** 4. Fecho: os grãos saem da frase e desenham o logo. */
+const LOGO_W = 560;
+const Fecho: React.FC = () => {
+	const f = useCurrentFrame();
+	const m = useMotion();
+	const F = b(M.fecho);
+	const L = b(M.logo);
+	const [vw, vh] = BRAND.logoParticulas.viewBox;
+	const box = {x: 960 - LOGO_W / 2, y: 600, w: LOGO_W};
+	const grains = useMemo(
+		() =>
+			sampleShapePoints(BRAND.logoParticulas.paths, [vw, vh], box, 760, 'logo').map((c, i) => ({a: {x: 700 + random(`fa${i}`) * 520, y: 360 + random(`fb${i}`) * 60}, c, t0: L - 30 + random(`ft${i}`) * 16, dur: 24 + random(`fd${i}`) * 8, size: 3 + random(`fz${i}`) * 2, lift: 40 + random(`fl${i}`) * 90, wob: random(`fw${i}`) * 20, depth: random(`fp${i}`) * 0.6, color: hexToRgbTuple(i % 3 ? m.ink : m.accent)}) satisfies GrainSpec),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[m.ink, m.accent],
+	);
+	if (f < F) return null;
+	const up = ramp(f, L - 6, L + 16, EASE);
+	const solid = ramp(f, L + 2, L + 16, EASE);
+	const Logo = BRAND.Logo;
+	return (
+		<AbsoluteFill>
+			<Headline text={TITULO} y={lerp(300, 230, up)} size={84} k={1} at={M.fecho + 0.2} />
+			<Headline text="Frase de assinatura." y={lerp(420, 350, up)} size={42} k={1} at={M.fecho + 1.4} font={m.ui} weight={500} color={m.inkSoft} />
+			<div style={{position: 'absolute', left: box.x, top: box.y, opacity: solid}}>
+				<Logo width={LOGO_W} color={m.ink} />
+			</div>
+			<GrainCanvas grains={grains} ripples={false} settle={0.35} glow={false} tail={0.02} />
+			<Card x={960 - 150} y={930} w={300} k={pop(f, L + 30)} style={{padding: '10px 18px', textAlign: 'center', fontFamily: m.ui, fontSize: 18, color: m.inkSoft}}>
+				Dados ilustrativos
+			</Card>
+		</AbsoluteFill>
+	);
+};
+
+export const Video: React.FC = () => (
+	<VideoProvider timeline={T} brand={BRAND}>
+		<AbsoluteFill style={{background: BRAND.cores.papel}}>
+			<Paper color={BRAND.cores.papel} />
+			<Dust />
+			<Gancho />
+			<Titulo />
+			<NoApp />
+			<Fecho />
+			<Legendas itens={LEGENDAS} />
+			<Grain amount={0.03} vignette={0} />
+		</AbsoluteFill>
+	</VideoProvider>
+);

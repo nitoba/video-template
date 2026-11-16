@@ -37,7 +37,10 @@ bun install
 bun run novo <slug> --marca <agrotrace|pectrace> --titulo "Título"
 ```
 
-Isso copia `src/videos/_modelo/` para `src/videos/<slug>/`, registra a composição e gera a trilha inicial.
+Isso copia `src/videos/_modelo/` para `src/videos/<slug>/` (já na linguagem aprovada: papel da marca, tela em
+camadas, órbita, peça, grãos no logo), copia a tela ilustrativa para `public/<slug>/telas/`, registra a
+composição e gera a trilha inicial. Troque em `story.ts` a `TELA`, o `ALVO` e as `FAIXAS` pela captura real e os
+recortes dela.
 
 ## 4. Telas reais
 

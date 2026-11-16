@@ -2,20 +2,20 @@
 	"fps": 30,
 	"width": 1920,
 	"height": 1080,
-	"bpm": 85.7143,
-	"beat": 21,
-	"scenes": [{"id": "__SLUG__", "duration": 1260}],
+	"bpm": 90,
+	"beat": 20,
+	"scenes": [{"id": "__SLUG__", "duration": 720}],
 	"transitions": [],
 	"marks": {
-		"gancho": 1,
-		"numero": 2.5,
-		"virada": 10,
-		"titulo": 14,
-		"app": 22,
-		"clique": 28,
-		"resultado": 30,
-		"final": 44,
-		"logo": 48,
-		"end": 60
+		"numero": 1,
+		"pergunta": 5.5,
+		"titulo": 10,
+		"app": 14.5,
+		"foco": 18.5,
+		"clique": 20.5,
+		"peca": 22.5,
+		"resultado": 25.5,
+		"fecho": 30,
+		"logo": 33
 	}
 }

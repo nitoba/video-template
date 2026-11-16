@@ -36,6 +36,8 @@ for (const f of readdirSync(dir)) {
 	writeFileSync(p, readFileSync(p, 'utf8').replaceAll('__SLUG__', slug).replaceAll('__TITULO__', titulo).replaceAll('__BRAND__', marca));
 }
 for (const sub of ['telas', 'lottie', 'voz/raw']) mkdirSync(resolve(root, 'public', slug, sub), {recursive: true});
+// Tela ilustrativa: o modelo já monta as camadas sobre ela até chegar a captura real.
+cpSync(resolve(root, 'public/_modelo/telas/ilustrativa.jpg'), resolve(root, 'public', slug, 'telas/ilustrativa.jpg'));
 
 const ident = slug.replace(/(^|-)([a-z0-9])/g, (_, __, c) => c.toUpperCase());
 const UP = slug.toUpperCase().replace(/-/g, '_');

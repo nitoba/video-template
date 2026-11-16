@@ -5,11 +5,15 @@ Validação de atendimentos. Leia antes de começar um vídeo novo.
 
 Referências aprovadas:
 
-- **Feature com narração, telas reais e animações de apoio:** o vídeo de exemplo deste template,
-  `src/videos/exemplo-validacao/` (`bun run render exemplo-validacao`). Use como molde.
-- **Direção atual (PecTrace, novembro de 2026):** `src/videos/prova-direcao/`, com o tratamento em
-  `tratamento.md`. É a referência de linguagem: papel da marca, câmera contínua sobre a captura real,
-  partículas com significado e uma peça da interface como protagonista.
+- **Vídeo narrado de feature, na linguagem atual (molde):** `src/videos/validacao-atendimentos/`
+  (`bun run render validacao-atendimentos` e `bun run narrar validacao-atendimentos`): 38 falas, legendas, telas reais
+  em camadas 3D, transições com direção e animação com física.
+- **Prova da direção (PecTrace, novembro de 2026):** `src/videos/prova-direcao/`, com o tratamento em
+  `tratamento.md`: papel da marca, câmera contínua sobre a captura real, partículas com significado e uma peça da
+  interface como protagonista.
+- **O esqueleto de `bun run novo`** (`src/videos/_modelo/`) já nasce nessa linguagem, para qualquer marca.
+- **Linguagem antiga (escura, janela do navegador):** `src/videos/exemplo-validacao/`, mantido como referência
+  técnica de narração, Lottie e capturas.
 - **História em plano-sequência e Central de Inconsistências:** ficam no repositório original
   `agrotrace-video` (`src/jornada-historia/`, `src/central/`), que não foi trazido para cá; os
   componentes que eles usavam viraram o kit deste template (`src/kit/`).

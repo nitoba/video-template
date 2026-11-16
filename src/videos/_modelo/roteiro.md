@@ -11,8 +11,7 @@
 
 | Tempos | Momento | O que aparece (tela real / animação) | Legenda | Narração | Som |
 |---|---|---|---|---|---|
-| 0–10 | Gancho | Número real em odômetro | | | |
-| 10–14 | Virada | | | | |
-| 14–22 | Título | | | | |
-| 22–44 | O software resolvendo | Capturas em public/__SLUG__/telas/ | | | |
-| 44–60 | Marca | Partículas formam o logo | | | |
+| 0–7 s | Gancho | Número real em odômetro e a pergunta, por máscara | | | Motivo no piano |
+| 7–10 s | Título | Logo e título palavra a palavra | | | Impacto |
+| 10–20 s | O software resolvendo | Captura em camadas 3D (FAIXAS), câmera em órbita, contorno no ALVO, cursor, a peça com o resultado | | | Base, clique, peça |
+| 20–24 s | Fecho | Os grãos desenham o logo | | | Assinatura |
