@@ -7,6 +7,9 @@ Referências aprovadas:
 
 - **Feature com narração, telas reais e animações de apoio:** o vídeo de exemplo deste template,
   `src/videos/exemplo-validacao/` (`bun run render exemplo-validacao`). Use como molde.
+- **Direção atual (PecTrace, novembro de 2026):** `src/videos/prova-direcao/`, com o tratamento em
+  `tratamento.md`. É a referência de linguagem: papel da marca, câmera contínua sobre a captura real,
+  partículas com significado e uma peça da interface como protagonista.
 - **História em plano-sequência e Central de Inconsistências:** ficam no repositório original
   `agrotrace-video` (`src/jornada-historia/`, `src/central/`), que não foi trazido para cá; os
   componentes que eles usavam viraram o kit deste template (`src/kit/`).
@@ -34,7 +37,82 @@ precisa vender a funcionalidade, mostrando o software de verdade. A fórmula que
 | **Plano-sequência com história (aprovado)** | A história prende e o software aparece resolvendo cada problema. |
 | Telas do CMS redesenhadas em React (Validação v1) | "Não estão conforme o layout da aplicação": a recriação a partir do código errou título, abas, cabeçalho, cores e conteúdo de cada seção. Resolvido com capturas reais (seção 4). |
 | Animações Lottie lineares e simples (Validação v1) | "Não estão trabalhadas como se fosse um artista de motion": movimento linear, sem antecipação, sem mola, elementos parados esperando a vez. Resolvido com o padrão da seção 5. |
+| Três direções novas em moodboard com imagens de IA (16/11/2026) | "Amador": página, direções, fontes e estilo. Trocar a identidade não era o pedido; o pedido era acabamento. |
+| Cetim escuro, plano macro e partículas copiados de Raycast, Linear e Comet (16/11/2026) | "Mais partículas e trilha não deixam o vídeo bom" e "o escuro não combina com o PecTrace". Referência é princípio, não estilo. Resolvido pela seção "Direção antes de efeito". |
+| Telas paradas com zoom pequeno e contornos (16/11/2026, versão narrada v1) | "Sem dinamicidade, sem vida, uma imagem parada com um pequeno zoom e highlights: é amador." Resolvido com o sistema de movimento (seção "Direção antes de efeito › Movimento"). |
 | Voz soletrando siglas (Validação v1) | "RAT" saiu como "R-A-T". A sigla se fala "ráti". Resolvido escrevendo a pronúncia no texto da fala (seção 6). |
+
+## Direção antes de efeito
+
+Quem faz o vídeo age como roteirista, diretor e editor. Efeito não salva uma cena sem ideia.
+
+### Tratamento e prova antes do vídeo
+
+1. Escreva `tratamento.md` na pasta do vídeo (modelo em `src/videos/_modelo/tratamento.md`): para quem,
+   o problema que essa pessoa sente, a ideia em uma frase, o roteiro em tabela, a direção de arte, a
+   edição e o som. Peça aprovação.
+2. Construa uma **prova de 15 a 20 s** com o momento central da história (telas reais, trilha e
+   foley) e aprove antes do vídeo completo. Mudar a direção numa prova custa minutos; num vídeo de
+   90 s custa o dia.
+
+### Identidade vem da marca e do nicho
+
+- Comece pela marca do vídeo (`src/brands/<marca>.tsx`) e pelo próprio app: cores, fontes, os
+  materiais do mundo do usuário. O PecTrace é laranja e claro, o app é claro e o RAT é um documento
+  de campo, então a prova usa papel quente (`Paper`), tinta marrom, laranja para ação e o amarelo do
+  marca-texto do app para "cópia". O fundo escuro não combina com essa marca.
+- Cada marca e cada nicho pedem a sua adaptação. Não reaproveite a estética de um vídeo de outra
+  marca só porque ficou bonita lá.
+- Das referências externas (Raycast, Linear, Comet...) tire **o princípio**, nunca a cor, a textura
+  ou a tipografia:
+  - **câmera contínua:** um movimento que vai do detalhe ao contexto, em vez de muitos cortes;
+  - **uma peça da interface como protagonista:** a peça sai da tela, o resto desfoca e recua;
+  - **partícula como ligação entre dados:** o grão sai de onde a informação está e chega onde ela
+    se repete.
+
+### Partículas com significado (`src/kit/grains.tsx`)
+
+- Cada grão tem origem e destino que **querem dizer algo**. Na prova, cada linha copiada solta uma
+  fita de grãos que cai na mesma linha do outro atendimento, e a linha de destino acende quando eles
+  chegam. No fecho, os grãos saem da palavra "conferido." e desenham o logo (`sampleShapePoints`).
+- Pouca quantidade e trajetória organizada (uma fita por linha, fases próximas). Muitos grãos com
+  rastro longo viram riscos caóticos por cima do texto, e glow em grão denso vira borrão.
+- Os grãos agem **depois** que a câmera assenta. Dois movimentos ao mesmo tempo competem.
+
+### Movimento (o que separa o vídeo profissional do amador)
+
+Referência de implementação: `src/videos/validacao-atendimentos/Video.tsx` (`Stage`, `Layers`, `Spot`, `Peca`,
+`Card`, `Headline`, `Odo`, `Cursor`).
+
+- **A interface nunca é foto.** Recorte a captura em peças (linhas, cartões, blocos da gaveta, partes do modal) e
+  ponha cada uma no espaço 3D, na sua profundidade (`Layers`). As peças entram em sequência, vindas do fundo. O
+  trecho da fala vem à frente como peça própria.
+- **A câmera nunca para.** Cada tela entra inclinada e orbita durante a cena, e as profundidades diferentes geram
+  paralaxe. Avanço de 3% a 6% não conta como movimento.
+- **Transições com direção.** As cenas empurram umas às outras com desfoque de movimento (efeito chicote), ou
+  entram por mergulho e zoom. A dissolvência pelo papel fica reservada. Alterne as direções em telas seguidas.
+- **Peso e física.** Antecipação, arco, quique e overshoot, rotação que assenta, sombra que cresce com a altura e
+  flutuação em repouso. Impactos têm tremor de câmera e estilhaço de grãos.
+- **Desenho em vez de aparição.** Contornos, linhas-guia e zonas se desenham, e números rolam como odômetro. Títulos
+  sobem de dentro de uma máscara, palavra por palavra.
+- **Anotações por cima, na profundidade certa.** Camadas e anotações ficam em dois planos 3D que giram juntos.
+  Cada contorno vai na profundidade (`z`) da peça que marca; se não, ele some atrás das camadas.
+- **Teste curto antes do vídeo todo.** Renderize os primeiros 60 a 80 s e aprove antes de aplicar no resto.
+
+### Edição
+
+- **Ritmo:** quem assiste lê mais rápido do que o texto aparece. Escrita palavra a palavra de uma
+  frase de 15 palavras: cerca de 2 s, não 4,5.
+- **Composição:** cada quadro tem um centro claro. Nada de um elemento sozinho no terço de cima com o
+  resto vazio. A câmera nunca fica parada: um avanço lento já basta.
+- **Câmera sobre a captura (`src/kit/plano.tsx`):** recue rápido (cerca de 1,7 s) até um
+  enquadramento **legível**, com respiro nas bordas, e deixe uma deriva lenta. Quadros de interface
+  recortada sem foco cansam.
+- **Casamento de corte:** o texto desenhado casa com a mesma linha da captura, na mesma posição e
+  escala (`viewMatching`). A transição passa pelo papel com desfoque, sem dois textos sobrepostos.
+- **Continuidade:** elementos do começo voltam como âncoras, como os selos #60290 e #60096 do ato 1
+  presos aos blocos da comparação no ato 2.
+- **Fecho:** segure o logo cerca de 1,5 s. Três segundos parado já é tempo morto.
 
 ## 2. Roteiro
 
@@ -325,6 +403,8 @@ precisa parecer feito por um artista de motion.
 ## 9. Checklist de um vídeo novo
 
 1. Probe nos dados: quais são os conflitos reais e quem são os protagonistas?
+   Escreva `tratamento.md` e faça a prova de 15 a 20 s (seção "Direção antes de efeito") antes do vídeo
+   completo.
 2. Leia os commits recentes da branch da feature: mudanças de última hora costumam ser o que o usuário
    quer ver (na Validação, a comparação lado a lado da cópia e cola).
 3. Roteiro em tabela (tempo, história, função mostrada, legenda, som, narração), aprovado antes de

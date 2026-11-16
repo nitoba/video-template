@@ -1,0 +1,233 @@
+{
+	"beatBase": 21,
+	"falas": [
+		{
+			"n": 1,
+			"ini": 1.8,
+			"fim": 5.2,
+			"texto": "[serious] Três mil, setecentos e trinta e seis atendimentos concluídos na JBS."
+		},
+		{
+			"n": 2,
+			"ini": 5.4,
+			"fim": 8,
+			"texto": "[curious] Quantos foram conferidos? [short pause] Nenhum."
+		},
+		{
+			"n": 3,
+			"ini": 8.2,
+			"fim": 12.2,
+			"texto": "A conferência só acontece na exportação, quando o zip vai para a JBS."
+		},
+		{
+			"n": 4,
+			"ini": 13,
+			"fim": 17.8,
+			"texto": "[serious] Em cinco de setembro, o ráti do William saiu sem a assinatura do produtor."
+		},
+		{
+			"n": 5,
+			"ini": 18,
+			"fim": 22,
+			"texto": "[serious] Se a JBS rejeita, o técnico não recebe pela visita."
+		},
+		{
+			"n": 6,
+			"ini": 22,
+			"fim": 24.4,
+			"texto": "[confidently] Agora, cada ráti é conferido assim que chega."
+		},
+		{
+			"n": 7,
+			"ini": 25,
+			"fim": 29.8,
+			"texto": "[confidently] Validação de atendimentos. [short pause] O erro aparece antes de chegar à JBS."
+		},
+		{
+			"n": 8,
+			"ini": 30.3,
+			"fim": 34,
+			"texto": "O técnico sincroniza, e o atendimento entra na fila."
+		},
+		{
+			"n": 9,
+			"ini": 34.4,
+			"fim": 38.2,
+			"texto": "A IA lê o ráti: o contrato impresso, as assinaturas e o texto."
+		},
+		{
+			"n": 10,
+			"ini": 38.6,
+			"fim": 42.2,
+			"texto": "A assinatura do consultor é comparada com a referência do técnico."
+		},
+		{
+			"n": 11,
+			"ini": 42.6,
+			"fim": 46.8,
+			"texto": "Sete verificações, em cerca de doze segundos, por menos de um centavo."
+		},
+		{
+			"n": 12,
+			"ini": 47,
+			"fim": 50.2,
+			"texto": "[confidently] Nada é rejeitado: vira alerta, e o gestor decide."
+		},
+		{
+			"n": 13,
+			"ini": 50.7,
+			"fim": 54.9,
+			"texto": "Às sete, o resumo chega por e-mail. [short pause] Só quando há alerta novo."
+		},
+		{
+			"n": 14,
+			"ini": 55.1,
+			"fim": 57,
+			"texto": "Um clique, e o gestor está na validação."
+		},
+		{
+			"n": 15,
+			"ini": 57.6,
+			"fim": 60.9,
+			"texto": "Só vinte e dois de duzentos e nove estão prontos para a JBS."
+		},
+		{
+			"n": 16,
+			"ini": 61.2,
+			"fim": 63.5,
+			"texto": "[confidently] Primeiro, o que é grave: o contrato."
+		},
+		{
+			"n": 17,
+			"ini": 64.3,
+			"fim": 66.1,
+			"texto": "Cada atendimento tem um dossiê."
+		},
+		{
+			"n": 18,
+			"ini": 66.2,
+			"fim": 69.7,
+			"texto": "No Sítio Taismara, o contrato venceu em setembro de dois mil e vinte e cinco."
+		},
+		{
+			"n": 19,
+			"ini": 70.1,
+			"fim": 73.57,
+			"texto": "E a recomendação é a mesma, palavra por palavra, de outra propriedade."
+		},
+		{
+			"n": 38,
+			"ini": 73.78,
+			"fim": 78.33,
+			"texto": "Um clique abre os dois atendimentos lado a lado, com os trechos repetidos em destaque."
+		},
+		{
+			"n": 20,
+			"ini": 79,
+			"fim": 82,
+			"texto": "[warmly] Já conferiu? Dispensa, com justificativa."
+		},
+		{
+			"n": 21,
+			"ini": 84,
+			"fim": 87.4,
+			"texto": "Corrigiu o ráti? Revalida, e a IA lê de novo."
+		},
+		{
+			"n": 22,
+			"ini": 88.4,
+			"fim": 91.6,
+			"texto": "[curious] E os atendimentos de antes? Escolhe o técnico e o período."
+		},
+		{
+			"n": 23,
+			"ini": 92,
+			"fim": 95.2,
+			"texto": "A prévia mostra quantos, antes de gastar com IA."
+		},
+		{
+			"n": 24,
+			"ini": 96,
+			"fim": 101.2,
+			"texto": "Em agosto e setembro, duzentos e nove atendimentos validados, sem nenhuma falha."
+		},
+		{
+			"n": 25,
+			"ini": 102,
+			"fim": 106.8,
+			"texto": "[relieved] E o ráti sem assinatura não chega mais à JBS sem ninguém ver."
+		},
+		{
+			"n": 26,
+			"ini": 108,
+			"fim": 109.6,
+			"texto": "[curious] E para ligar em outro programa?"
+		},
+		{
+			"n": 27,
+			"ini": 109.8,
+			"fim": 111.6,
+			"texto": "[confidently] Tudo pelo cê eme ésse, sem deploy."
+		},
+		{
+			"n": 28,
+			"ini": 112,
+			"fim": 116.6,
+			"texto": "A aba nasce no cadastro do programa, desligada. Só um master libera."
+		},
+		{
+			"n": 29,
+			"ini": 117,
+			"fim": 121,
+			"texto": "Escolhe o modo: silencioso, sem avisar ninguém, ou ativo, com o resumo por e-mail."
+		},
+		{
+			"n": 30,
+			"ini": 122,
+			"fim": 125.8,
+			"texto": "Cada verificação tem a sua gravidade e as suas regras."
+		},
+		{
+			"n": 31,
+			"ini": 126.2,
+			"fim": 130.2,
+			"texto": "Cópia e cola: oitenta por cento de semelhança, em trinta e um dias."
+		},
+		{
+			"n": 32,
+			"ini": 130.6,
+			"fim": 134,
+			"texto": "As assinaturas de referência saem dos rátis que já existem."
+		},
+		{
+			"n": 33,
+			"ini": 134.2,
+			"fim": 137.6,
+			"texto": "E o técnico pode trocar pela dele."
+		},
+		{
+			"n": 34,
+			"ini": 138.2,
+			"fim": 141.4,
+			"texto": "Quem recebe o resumo, e a que horas."
+		},
+		{
+			"n": 35,
+			"ini": 143,
+			"fim": 146.8,
+			"texto": "[confidently] Ligou: todo atendimento novo passa pelas sete verificações."
+		},
+		{
+			"n": 36,
+			"ini": 147.4,
+			"fim": 153,
+			"texto": "Sincroniza, a IA lê, verifica, avisa, [short pause] e o gestor decide."
+		},
+		{
+			"n": 37,
+			"ini": 157.5,
+			"fim": 163.4,
+			"texto": "[warmly] Validação de atendimentos. [short pause] O ráti chega, e o erro não passa."
+		}
+	]
+}

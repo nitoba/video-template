@@ -47,10 +47,12 @@ src/
   core/        shaders, partículas, câmera 3D, fontes, grão
   brands/      marcas: cores, céus de fundo, fontes, logo (agrotrace, pectrace; crie a sua copiando uma)
   kit/         linguagem visual: timeline em tempos de música, fundos, legendas, odômetro, janela do app,
-               cursor, foco, Lottie, telas reais, fecho com o logo
+               cursor, foco, Lottie, telas reais, fecho com o logo, câmera 2D sobre a captura (plano.tsx),
+               grãos com significado (grains.tsx)
   videos/
     _modelo/             esqueleto copiado por `bun run novo`
     exemplo-validacao/   vídeo completo de referência (telas reais, Lottie, narração)
+    prova-direcao/       prova de 19 s da direção atual (PecTrace): tratamento.md, papel, plano, grãos
     index.ts             registro das composições
 scripts/       novo vídeo, render, trilha (lib/synth.mjs, lib/mix.mjs), narração, folha, Lottie
 public/<slug>/ telas/, lottie/, voz/raw/ e a trilha gerada

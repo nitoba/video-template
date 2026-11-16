@@ -50,7 +50,7 @@ if (r.status !== 0) process.exit(r.status ?? 1);
 console.log(`
 Vídeo criado: src/videos/${slug} (marca ${marca}).
 Próximos passos (siga a skill novo-video e docs/guia-de-producao.md):
-  1. Preencha src/videos/${slug}/roteiro.md e aprove com quem pediu.
-  2. Capturas reais em public/${slug}/telas/ (seção 4 do guia) e TELAS em story.ts.
+  1. Preencha src/videos/${slug}/tratamento.md e aprove; faça a prova de 15–20 s e aprove.
+  2. Detalhe roteiro.md (narração). Capturas reais em public/${slug}/telas/ (seção 4 do guia) e TELAS em story.ts.
   3. Marcos em timeline.json; narração em narracao.json; trilha em trilha.mjs.
   4. bun run dev  ·  bun run folha ${slug} 5 20 40  ·  bun run render ${slug}`);
