@@ -6,6 +6,7 @@
 import React, {createContext, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {AbsoluteFill, Img, random, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import type {Brand} from '../brands';
+import {CamProvider, deriva, Rastro, Sombra, trilho, velocityAt} from './corpo';
 import {Plano, planoToScreen, type View} from './plano';
 import {EASE, lerp, OUT, ramp, useB, useBrand} from './timeline';
 
@@ -72,18 +73,11 @@ export const shake = (f: number, from: number, amp = 10) => {
 	const d = Math.exp(-t / 5) * amp;
 	return {x: Math.sin(t * 2.9) * d, y: Math.cos(t * 3.7) * d * 0.6};
 };
-/** Câmera por chaves [[quadro, View], ...]: um movimento contínuo entre chaves (escala geométrica). */
-export const viewAt = (f: number, keys: [number, View][]): View => {
-	if (f <= keys[0][0]) return keys[0][1];
-	for (let i = 1; i < keys.length; i++) {
-		if (f < keys[i][0]) {
-			const [a, c] = [keys[i - 1][1], keys[i][1]];
-			const u = ramp(f, keys[i - 1][0], keys[i][0], EASE);
-			return {fx: lerp(a.fx, c.fx, u), fy: lerp(a.fy, c.fy, u), s: a.s * (c.s / a.s) ** u};
-		}
-	}
-	return keys[keys.length - 1][1];
-};
+/**
+ * Câmera por chaves [[quadro, View], ...] numa curva só (`trilho` em corpo.tsx): passa pelas chaves sem parar nelas.
+ * Para segurar um enquadramento, repita a View em duas chaves seguidas.
+ */
+export const viewAt = (f: number, keys: [number, View][]): View => trilho(keys)(f);
 /** Texto que se digita entre os quadros a e c. */
 export const typed = (text: string, f: number, a: number, c: number) => text.slice(0, Math.round(text.length * ramp(f, a, c)));
 /** Quanto a peça (Peca) está no centro, 0..1 (para desfocar o fundo). */
@@ -230,15 +224,16 @@ export const Spot: React.FC<{v: View; r: Rect; from: number; to?: number; pad?: 
 export const Cursor: React.FC<{x: number; y: number; click: number; from?: [number, number]; scale?: number}> = ({x, y, click, from = [x + 300, y + 220], scale = 1}) => {
 	const f = useCurrentFrame();
 	const t = useMotion();
-	if (f < click - 28 || f > click + 30) return null;
-	const u = ramp(f, click - 26, click - 2, EASE);
+	if (f < click - 32 || f > click + 30) return null;
+	// A mão chega antes do clique (uns 6 quadros), freando, e só então aperta.
+	const u = ramp(f, click - 30, click - 6, OUT);
 	const cx = from[0] - 40;
 	const cy = y - 60;
 	const px = (1 - u) ** 2 * from[0] + 2 * (1 - u) * u * cx + u * u * x;
 	const py = (1 - u) ** 2 * from[1] + 2 * (1 - u) * u * cy + u * u * y;
 	const press = ramp(f, click, click + 16, OUT);
-	const squash = f >= click && f < click + 8 ? 0.82 + 0.18 * ramp(f, click, click + 8) : 1;
-	const vis = ramp(f, click - 28, click - 20) * (1 - ramp(f, click + 20, click + 30));
+	const squash = f >= click - 1 && f < click + 9 ? lerp(1, 0.84, ramp(f, click - 1, click + 2)) + 0.16 * ramp(f, click + 3, click + 9, OUT) : 1;
+	const vis = ramp(f, click - 32, click - 24) * (1 - ramp(f, click + 20, click + 30));
 	return (
 		<div style={{position: 'absolute', inset: 0, transform: 'translateZ(200px)'}}>
 			{f >= click && <div style={{position: 'absolute', left: x - 36 * press * scale, top: y - 36 * press * scale, width: 72 * press * scale, height: 72 * press * scale, borderRadius: '50%', border: `3px solid ${t.accent}`, opacity: 1 - press}} />}
@@ -270,6 +265,23 @@ export const Peca: React.FC<{v: View; r: Rect; peca: number; drop?: number; widt
 };
 
 // ---------- Cenas ----------
+/** Órbita das cenas ilustradas quando o vídeo não define outra: a câmera nunca para. */
+const ORBITA_ILUSTRADA: [number, number, number, number] = [3, -6, 1.5, 5];
+/** Escala em que a cena ilustrada é desenhada; a câmera só reduz a partir dela, então o texto não borra no zoom. */
+const ZOOM_MAX = 1.7;
+/**
+ * Enquadramento de uma cena ilustrada de 1920×1080: o ponto (fx, fy) vai para o centro do quadro na escala `s`
+ * (até 1,7). A cena é desenhada grande com `zoom` e a transformação só reduz (ver "Armadilhas" no guia).
+ */
+export const Enquadre: React.FC<{v?: View; children: React.ReactNode}> = ({v, children}) => {
+	if (!v) return <>{children}</>;
+	const k = Math.min(ZOOM_MAX, v.s);
+	return (
+		<div style={{position: 'absolute', left: 0, top: 0, width: 1920 * ZOOM_MAX, height: 1080 * ZOOM_MAX, transformOrigin: '0 0', transformStyle: 'preserve-3d', transform: `translate(${960 - v.fx * k}px, ${540 - v.fy * k}px) scale(${k / ZOOM_MAX})`}}>
+			<div style={{position: 'absolute', left: 0, top: 0, width: 1920, height: 1080, zoom: ZOOM_MAX, transformStyle: 'preserve-3d'}}>{children}</div>
+		</div>
+	);
+};
 export type Dir = 'left' | 'right' | 'up' | 'down' | 'zoom' | 'dive' | 'fade' | 'cut';
 const DIRV: Record<string, [number, number]> = {left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1]};
 /**
@@ -277,10 +289,18 @@ const DIRV: Record<string, [number, number]> = {left: [-1, 0], right: [1, 0], up
  * acompanha a velocidade (efeito chicote). Com `src` e `v`, a captura real e as camadas (`layers`) ficam num plano 3D
  * que entra inclinado, assenta e orbita (`orbit` = [rx0, ry0, rx1, ry1] ao longo da cena); as anotações (`children`)
  * ficam num segundo plano com a mesma rotação, sempre por cima das camadas.
+ * Sem `src` (cena ilustrada), o conteúdo ganha a mesma câmera 3D, com uma órbita padrão, e `foco` enquadra o
+ * assunto: uma View em px da cena. Melhor ainda, passe `trilho` (chaves [[quadro, View], ...]): a câmera percorre
+ * as chaves numa curva contínua, inclina nas curvas, desfoca na direção do movimento quando corre, e as peças em
+  * `Prof` (corpo.tsx) ganham paralaxe e atraso em relação a ela.
+ * Para trocar de tela sem dissolvência (abas de um mesmo modal), emende as cenas com `exit="cut"` e `cutIn`, a
+ * mesma câmera (`camAt`) e o mesmo `orbitSpan`: só o conteúdo troca, o enquadramento segue.
  */
-export const Stage: React.FC<{from: number; to: number; src?: string; v?: View; w?: number; h?: number; cutIn?: boolean; enter?: Dir; exit?: Dir; blur?: number; orbit?: [number, number, number, number]; base?: number; layers?: React.ReactNode; children?: React.ReactNode}> = ({from, to, src, v, w, h, cutIn, enter = 'right', exit = 'left', blur = 0, orbit, base = 1, layers, children}) => {
+export const Stage: React.FC<{from: number; to: number; src?: string; v?: View; w?: number; h?: number; cutIn?: boolean; enter?: Dir; exit?: Dir; blur?: number; orbit?: [number, number, number, number]; base?: number; layers?: React.ReactNode; foco?: View; trilho?: [number, View][]; camAt?: (f: number) => View; orbitSpan?: [number, number]; children?: React.ReactNode}> = ({from, to, src, v, w, h, cutIn, enter = 'right', exit = 'left', blur = 0, orbit: orbitIn, base = 1, layers, foco: focoIn, trilho: chaves, camAt: camIn, orbitSpan, children}) => {
 	const f = useCurrentFrame();
-	if (f < from - 2 || f > to + 18) return null;
+	// Saída em corte seco some no próprio quadro (a cena seguinte assume o mesmo enquadramento).
+	if (f < from - 2 || f > to + 18 || (exit === 'cut' && f >= to) || (cutIn && f < from)) return null;
+	const orbit = orbitIn ?? (src ? undefined : ORBITA_ILUSTRADA);
 	const ent: Dir = cutIn ? 'cut' : enter;
 	const inn = ent === 'cut' ? 1 : ramp(f, from, from + 20, OUT);
 	const out = ramp(f, to, to + 16, (x) => x * x);
@@ -302,19 +322,36 @@ export const Stage: React.FC<{from: number; to: number; src?: string; v?: View; 
 	else if (exit === 'zoom') sc *= 1 - out * 0.2;
 	if (exit === 'fade' || exit === 'dive' || exit === 'zoom') op *= 1 - out;
 	const mb = vin * 22 + out * 22;
-	const settle = 1 - ramp(f, from, from + 40, OUT);
-	const o = ramp(f, from, to + 16, (x) => x);
-	const rx = settle * 12 + Math.sin(f / 80) * 1.1 + (orbit ? lerp(orbit[0], orbit[2], o) : 0);
-	const ry = settle * -9 + Math.sin(f / 115 + 1) * 1.5 + (orbit ? lerp(orbit[1], orbit[3], o) : 0);
-	const dx = Math.sin(f / 95) * 10;
-	const cam: React.CSSProperties = {transform: `translateX(${dx}px) rotateX(${rx}deg) rotateY(${ry}deg)`, transformOrigin: '50% 50%', transformStyle: 'preserve-3d'};
+	const settle = ent === 'cut' ? 0 : 1 - ramp(f, from, from + 40, OUT);
+	// `orbitSpan` estende a órbita por várias cenas emendadas em corte, para a câmera não recomeçar em cada uma.
+	const o = orbitSpan ? ramp(f, orbitSpan[0], orbitSpan[1], (x) => x) : ramp(f, from, to + 16, (x) => x);
+	// A órbita acelera e freia (não é uma rampa reta) e a câmera respira numa deriva que não se repete.
+	const oe = o * o * (3 - 2 * o);
+	const rx = settle * 12 + deriva(f, 1) * 1.3 + (orbit ? lerp(orbit[0], orbit[2], oe) : 0);
+	const ry = settle * -9 + deriva(f, 2) * 1.8 + (orbit ? lerp(orbit[1], orbit[3], oe) : 0);
+	const dx = deriva(f, 3) * 10;
+	const camAt = camIn ?? (chaves ? trilho(chaves) : undefined);
+	const foco = camAt && !src ? camAt(f) : focoIn;
+	// Velocidade da câmera na tela: inclina nas curvas (como quem vira o corpo) e vira desfoque quando corre.
+	const vel = camAt
+		? velocityAt((g) => {
+				const c = camAt(g);
+				return {x: -c.fx * c.s, y: -c.fy * c.s};
+			}, f)
+		: {vx: 0, vy: 0, speed: 0};
+	const bank = Math.max(-1.6, Math.min(1.6, vel.vx * -0.04));
+	const cam: React.CSSProperties = {transform: `translateX(${dx}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${bank}deg)`, transformOrigin: '50% 50%', transformStyle: 'preserve-3d'};
+	// Chicote: desfoque só no eixo do movimento. Entrada por zoom ou mergulho continua com desfoque redondo.
+	const eixo = DIRV[ent] && vin > 0.001 ? DIRV[ent] : DIRV[exit] && out > 0.001 ? DIRV[exit] : null;
 	return (
-		<AbsoluteFill style={{opacity: op, transform: `translate(${tx}px, ${ty}px) scale(${sc})`, filter: mb > 0.3 ? `blur(${mb}px)` : undefined}}>
+		<AbsoluteFill style={{opacity: op, transform: `translate(${tx}px, ${ty}px) scale(${sc})`, filter: mb > 0.3 && !eixo ? `blur(${mb}px)` : undefined}}>
+			<Rastro vx={eixo ? eixo[0] * mb * 3 : 0} vy={eixo ? eixo[1] * mb * 3 : 0} coef={1 / 3} max={40} piso={1}>
 			{src && v ? (
-				<>
-					<AbsoluteFill style={{perspective: 2400}}>
-						<AbsoluteFill style={cam}>
-							{base > 0 && (
+				<CamProvider at={camAt ?? (() => v)}>
+					<Rastro vx={vel.vx} vy={vel.vy}>
+						<AbsoluteFill style={{perspective: 2400}}>
+							<AbsoluteFill style={cam}>
+								{base > 0 && (
 								<div style={{position: 'absolute', inset: 0, opacity: base, filter: blur > 0.01 ? `blur(${blur * 5}px)` : undefined}}>
 									<Plano src={src} v={v} w={w} h={h} />
 								</div>
@@ -323,19 +360,31 @@ export const Stage: React.FC<{from: number; to: number; src?: string; v?: View; 
 						</AbsoluteFill>
 					</AbsoluteFill>
 					<AbsoluteFill style={{perspective: 2400}}>
-						<AbsoluteFill style={cam}>{children}</AbsoluteFill>
-					</AbsoluteFill>
-				</>
+							<AbsoluteFill style={cam}>{children}</AbsoluteFill>
+						</AbsoluteFill>
+					</Rastro>
+				</CamProvider>
 			) : (
-				children
+				<Rastro vx={vel.vx} vy={vel.vy}>
+					<AbsoluteFill style={{perspective: 1500}}>
+						<AbsoluteFill style={cam}>
+							<CamProvider at={camAt ?? (() => foco ?? {fx: 960, fy: 540, s: 1})}>
+								<Enquadre v={foco}>{children}</Enquadre>
+							</CamProvider>
+						</AbsoluteFill>
+					</AbsoluteFill>
+				</Rastro>
 			)}
+			</Rastro>
 		</AbsoluteFill>
 	);
 };
 
 /**
  * Interface em camadas: recortes da captura (`r`, em px dela) viram peças no espaço 3D, cada uma na sua profundidade
- * `z`, entrando em sequência a partir de `at` (quadro), vindas de `from`. Passe como `layers` de um Stage com órbita.
+  * `z`, entrando em sequência a partir de `at` (quadro), vindas de `from`. Passe como `layers` de um Stage com órbita.
+ * As camadas não seguem a câmera com atraso: contornos (`Spot`) e remendos ficam ancorados na captura, e um atraso
+ * os descolaria dela durante o movimento (aconteceu na Validação: um remendo deixou aparecer o texto de baixo).
  */
 export type Layer = {r: Rect; z: number; at: number; from?: {x?: number; y?: number; z?: number; rx?: number; ry?: number}; lift?: number};
 export const Layers: React.FC<{src: string; w?: number; h?: number; v: View; layers: Layer[]; radius?: number}> = ({src, w = 3360, h = 2100, v, layers, radius = 12}) => {
@@ -367,10 +416,15 @@ export const Card: React.FC<{x: number; y: number; w: number; h?: number; k?: nu
 	const t = useMotion();
 	const c = Math.min(1, k);
 	const fl = Math.sin((f + x * 0.37) / 46) * 3 * c;
+	// A sombra fica no papel: cresce e amolece enquanto o cartão está alto e firma quando ele pousa.
+	const alto = 0.22 + (1 - c) * 0.9 - fl * 0.02;
 	return (
-		<div style={{position: 'absolute', left: x, top: y, width: w, height: h, padding: '26px 30px', borderRadius: 22, background: t.card, boxShadow: `0 ${6 + c * 14}px ${20 + c * 40}px rgba(${t.shadowRgb},${0.04 + c * 0.08}), 0 0 0 1px rgba(${t.shadowRgb},0.07)`, opacity: c, transform: `translateY(${(1 - k) * 44 + fl}px) rotate(${(1 - k) * -5}deg) scale(${lerp(0.88, 1, k)})`, ...style}}>
-			{children}
-		</div>
+		<>
+			{h !== undefined && <Sombra x={x} y={y} w={w} h={h} lift={alto} rgb={t.shadowRgb} opacity={c} />}
+			<div style={{position: 'absolute', left: x, top: y, width: w, height: h, padding: '26px 30px', borderRadius: 22, background: t.card, boxShadow: h !== undefined ? `0 0 0 1px rgba(${t.shadowRgb},0.07)` : `0 ${6 + c * 14}px ${20 + c * 40}px rgba(${t.shadowRgb},${0.04 + c * 0.08}), 0 0 0 1px rgba(${t.shadowRgb},0.07)`, opacity: c, transform: `translateY(${(1 - k) * 44 + fl}px) rotate(${(1 - k) * -5}deg) scale(${lerp(0.88, 1, k)})`, ...style}}>
+				{children}
+			</div>
+		</>
 	);
 };
 
@@ -460,7 +514,8 @@ export const Dust: React.FC<{count?: number}> = ({count = 46}) => {
 };
 
 /** Legendas da narração: [início, fim, texto] em segundos. */
-export const Legendas: React.FC<{itens: [number, number, string][]; bottom?: number}> = ({itens, bottom = 44}) => {
+/** Legenda de 56 px, em até duas linhas (a caixa encolhe até o texto quebrado). Ocupa os ~200 px de baixo: enquadre o assunto acima disso. */
+export const Legendas: React.FC<{itens: [number, number, string][]; bottom?: number}> = ({itens, bottom = 36}) => {
 	const f = useCurrentFrame();
 	const {fps} = useVideoConfig();
 	const t = useMotion();
@@ -471,7 +526,7 @@ export const Legendas: React.FC<{itens: [number, number, string][]; bottom?: num
 	const k = ramp(sec, ini - 0.15, ini + 0.05) * (1 - ramp(sec, fim + 0.15, fim + 0.35));
 	return (
 		<div style={{position: 'absolute', left: 0, right: 0, bottom, display: 'flex', justifyContent: 'center', opacity: k}}>
-			<div style={{maxWidth: 1480, padding: '12px 28px', borderRadius: 16, background: t.card, boxShadow: `0 8px 24px rgba(${t.shadowRgb},0.12), 0 0 0 1px rgba(${t.shadowRgb},0.06)`, fontFamily: t.ui, fontSize: 34, fontWeight: 500, lineHeight: 1.3, color: t.ink, textAlign: 'center'}}>{text}</div>
+			<div style={{maxWidth: text.length > 42 ? Math.min(1600, text.length * 15.5 + 150) : 1600, padding: '12px 32px', borderRadius: 18, textWrap: 'balance', background: t.card, boxShadow: `0 8px 24px rgba(${t.shadowRgb},0.12), 0 0 0 1px rgba(${t.shadowRgb},0.06)`, fontFamily: t.ui, fontSize: 56, fontWeight: 500, lineHeight: 1.18, color: t.ink, textAlign: 'center'}}>{text}</div>
 		</div>
 	);
 };

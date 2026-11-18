@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Cria um vídeo novo a partir de src/videos/_modelo e registra a composição.
-// Uso: bun run novo <slug> --marca <agrotrace|pectrace> --titulo "Título do vídeo"
+// Uso: bun run novo <slug> --marca <agrotrace|pectrace> --titulo "Título do vídeo" [--vertical]
 import {spawnSync} from 'node:child_process';
 import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, resolve} from 'node:path';
@@ -14,6 +14,7 @@ const opt = (k, d) => {
 	return i >= 0 ? args[i + 1] : d;
 };
 const marca = opt('marca', 'agrotrace');
+const vertical = args.includes('--vertical');
 const titulo = opt('titulo', slug ? slug.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase()) : '');
 if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
 	console.error('Uso: bun run novo <slug-em-kebab-case> --marca agrotrace|pectrace --titulo "Título"');
@@ -35,6 +36,10 @@ for (const f of readdirSync(dir)) {
 	const p = resolve(dir, f);
 	writeFileSync(p, readFileSync(p, 'utf8').replaceAll('__SLUG__', slug).replaceAll('__TITULO__', titulo).replaceAll('__BRAND__', marca));
 }
+if (vertical) {
+	const tp = resolve(dir, 'timeline.json');
+	writeFileSync(tp, JSON.stringify({...JSON.parse(readFileSync(tp, 'utf8')), width: 1080, height: 1920}, null, '\t') + '\n');
+}
 for (const sub of ['telas', 'lottie', 'voz/raw']) mkdirSync(resolve(root, 'public', slug, sub), {recursive: true});
 
 const ident = slug.replace(/(^|-)([a-z0-9])/g, (_, __, c) => c.toUpperCase());
@@ -42,7 +47,7 @@ const UP = slug.toUpperCase().replace(/-/g, '_');
 const reg = resolve(root, 'src/videos/index.ts');
 let s = readFileSync(reg, 'utf8');
 s = s.replace('// <imports>', `import {TOTAL as ${UP}_TOTAL} from './${slug}/story';\nimport {Video as ${ident}} from './${slug}/Video';\n// <imports>`);
-s = s.replace('\t// <videos>', `\t{id: '${slug}', component: ${ident}, frames: ${UP}_TOTAL},\n\t// <videos>`);
+s = s.replace('\t// <videos>', `\t{id: '${slug}', component: ${ident}, frames: ${UP}_TOTAL${vertical ? ', width: 1080, height: 1920' : ''}},\n\t// <videos>`);
 writeFileSync(reg, s);
 
 const r = spawnSync('node', [resolve(dir, 'trilha.mjs')], {stdio: 'inherit'});

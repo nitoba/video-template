@@ -12,21 +12,25 @@
 
 ## Estrutura (desenhada para esta história)
 
-- **Forma da narrativa e por que ela serve esta feature** (menu no guia, "Direção, não fórmula"; pode ser outra):
-- **Diferente dos dois últimos vídeos?** (guia, "Estruturas já usadas"): forma, abertura e fecho
+- **Três estruturas candidatas** (uma linha cada; a primeira ideia costuma ser o clichê):
+- **A escolhida e por que ela serve esta feature** (menu no guia, "Direção, não fórmula"; pode ser outra):
+- **Diferente do vídeo anterior em pelo menos 4 de 6** (estrutura, abertura, plano-assinatura, caminho da câmera,
+  forma da trilha, fecho; guia, "Estruturas já usadas"):
+- **O que este vídeo não é** (os vizinhos com que se confunde e as rejeições da seção 1 do guia que rondam esta ideia):
 - **Abertura (o primeiro gesto que prende):**
 - **Receitas do catálogo que entram e por quê; receitas novas que este vídeo pede:**
 
-| Tempo | Momento | Imagem (tela real, material do nicho) | Texto na tela | Som |
-|---|---|---|---|---|
-| | | | | |
+| Tempo | Momento | Imagem (tela real, material do nicho) | Por que este plano | Texto na tela | Como sai (o objeto que passa adiante) | Som |
+|---|---|---|---|---|---|---|
+| | | | | | | |
 
 ## Direção de arte (da marca e do nicho, não das referências)
 
 - **Base e cores (de `src/brands/__BRAND__.tsx` e do próprio app):**
+- **O que cada cor quer dizer, do começo ao fim** (acento = o que importa agora; vermelho = falha; verde = sucesso):
 - **Tipografia da marca:**
 - **Materiais do mundo do usuário:**
-- **Princípio tirado de cada referência (nunca cor, textura ou tipografia):**
+- **De cada referência: o princípio que fica e o que não vem junto** (nunca cor, textura ou tipografia):
 
 ## Edição
 
@@ -39,3 +43,8 @@
 
 - **Base, foley e onde fica o silêncio:**
 - **Assinatura sonora:**
+- **Onde o som chega antes da imagem (dois J-cuts ou L-cuts):**
+
+| Trecho | Estado da música | Foley | Conferido na mix |
+|---|---|---|---|
+| | | | |

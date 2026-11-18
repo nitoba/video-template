@@ -1,0 +1,27 @@
+{
+	"fps": 30,
+	"width": 1080,
+	"height": 1920,
+	"bpm": 90,
+	"beat": 20,
+	"scenes": [
+		{
+			"id": "tres-erros",
+			"duration": 240
+		}
+	],
+	"transitions": [],
+	"marks": {
+		"capa": 0,
+		"sai": 3.6,
+		"cresce": 4.3,
+		"erro1": 4.8,
+		"digita": 5.4,
+		"cai": 6.6,
+		"risca": 7.9,
+		"corrige": 8.4,
+		"etiquetas": 8.4,
+		"arruma": 9.2,
+		"erro2": 11.4
+	}
+}

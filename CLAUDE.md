@@ -13,5 +13,11 @@ Vídeos de features em Remotion, feitos com IA. Responda em pt-BR.
 - Telas do produto entram como **capturas reais**, nunca redesenhadas a partir do código. Não clique em ações
   que gravam dados nas capturas e abrevie dados pessoais antes de capturar.
 - Siglas na narração vão escritas como se falam ("ráti"). Gere e meça a voz antes de fixar os marcos.
+- Antes de entregar um vídeo, rode `bun run conferir <slug>` e `bun run audio <slug>` e responda a cada achado
+  (guia, seção 10).
 - Gastos (ElevenLabs, créditos de IA): estime e avise antes; nunca repita uma geração para "tentar de novo".
-- Comandos: `bun run dev` (Studio), `novo`, `trilha`, `folha`, `render`, `narrar`, `lottie-limpar`, `tipos`.
+- Sequência com muitos elementos (interface montando, lista, cartões em stagger): `@remotion/gsap` com
+  `useGsapTimeline` (sem callbacks, `play`, `seek`, `random` nem `gsap.to()` solto; só alvos DOM/SVG). Para um ou dois
+  elementos, `interpolate` e `spring` bastam. Água, líquido, ondulação e shader 2D: `@remotion/skia` (`Liquido` em
+  `src/kit/skia.tsx`), sempre dirigido por `useCurrentFrame`. Referência dos dois: o vídeo `exemplo-skia-gsap`.
+- Comandos: `bun run dev` (Studio), `novo`, `trilha`, `folha`, `render`, `narrar`, `conferir`, `audio`, `lottie-limpar`, `tipos`.

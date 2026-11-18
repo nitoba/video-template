@@ -57,5 +57,5 @@ export const LEGENDAS: [number, number, string][] = [
 	[151.36, 153.9, 'Quem recebe o resumo, e a que horas.'],
 	[156.62, 160.62, 'Ligou: todo atendimento novo passa pelas sete verificações.'],
 	[161.44, 167.13, 'Sincroniza, a IA lê, verifica, avisa, e o gestor decide.'],
-	[172.5, 177.44, 'Validação de atendimentos. O RAT chega, e o erro não passa.'],
+	[169.73, 174.67, 'Validação de atendimentos. O RAT chega, e o erro não passa.'],
 ];

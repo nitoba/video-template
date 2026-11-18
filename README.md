@@ -2,7 +2,8 @@
 
 Repositório-modelo para criar vídeos de features (demo, lançamento, apresentação) com IA, em
 [Remotion](https://www.remotion.dev): história tirada dos dados reais, telas reais do produto, câmera em
-plano-sequência, legendas cinéticas, animações de apoio em Lottie, trilha sintetizada e narração.
+plano-sequência, legendas cinéticas, animações de apoio em Lottie, sequências com GSAP, efeitos 2D com Skia,
+trilha sintetizada e narração.
 
 Nasceu dos vídeos do Agrotrace/PecTrace (Jornada, Central de Inconsistências, Validação de atendimentos).
 O que funcionou e o que foi rejeitado está em [`docs/guia-de-producao.md`](docs/guia-de-producao.md).
@@ -35,6 +36,8 @@ O que funcionou e o que foi rejeitado está em [`docs/guia-de-producao.md`](docs
 | `bun run novo <slug> --marca <id> --titulo "..."` | Cria `src/videos/<slug>/` a partir do modelo e registra a composição |
 | `bun run trilha <slug>` | Gera `public/<slug>/trilha.wav` |
 | `bun run folha <slug> <tempos...>` | Folha de quadros parados (tempos da música) em `out/folha-<slug>.jpg`; `REBUNDLE=1` após mudar o código |
+| `bun run conferir <slug>` | Conferência medida do MP4: trechos parados, quadros vazios, saltos, pops, silêncios, LUFS e pico real |
+| `bun run audio <slug>` | Curva de energia e som atrasado em relação aos marcos (librosa, pelo `uv`); `--musica faixa.wav` acha a grade de batidas de uma faixa externa |
 | `bun run render <slug>` | Render em blocos paralelos + trilha → `out/<slug>.mp4` |
 | `bun run narrar <slug>` | Mistura a narração → `out/<slug>-narrado.mp4` (`PLAN_ONLY=1`, `TAKES="7:b"`, `STEMS=1`) |
 | `bun run lottie-limpar <json>` | Corrige Lottie exportado com texto (glifos que quebram o lottie-web) |
@@ -49,11 +52,12 @@ src/
   kit/         linguagem visual: timeline em tempos de música, fundos, legendas, odômetro, janela do app,
                cursor, foco, Lottie, telas reais, fecho com o logo, câmera 2D sobre a captura (plano.tsx),
                grãos com significado (grains.tsx), sistema de movimento: interface em camadas 3D, transições,
-               peça, contornos, odômetro, legendas (motion.tsx)
+               peça, contornos, odômetro, legendas (motion.tsx), líquido 2D com Skia (skia.tsx)
   videos/
     _modelo/             esqueleto copiado por `bun run novo`
     exemplo-validacao/   vídeo completo de referência (telas reais, Lottie, narração)
     prova-direcao/       prova de 19 s da direção atual (PecTrace): tratamento.md, papel, plano, grãos
+    exemplo-skia-gsap/   9:16 de 5 s: entrada em stagger com @remotion/gsap e gotas líquidas com @remotion/skia
     index.ts             registro das composições
 scripts/       novo vídeo, render, trilha (lib/synth.mjs, lib/mix.mjs), narração, folha, Lottie
 public/<slug>/ telas/, lottie/, voz/raw/ e a trilha gerada

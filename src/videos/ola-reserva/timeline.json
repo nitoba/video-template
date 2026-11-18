@@ -1,0 +1,19 @@
+{
+	"fps": 30,
+	"width": 1920,
+	"height": 1080,
+	"bpm": 90,
+	"beat": 20,
+	"scenes": [
+		{
+			"id": "ola-reserva",
+			"duration": 120
+		}
+	],
+	"transitions": [],
+	"marks": {
+		"inicio": 0.5,
+		"numero": 1.9,
+		"fecho": 5.6
+	}
+}

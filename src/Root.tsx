@@ -10,7 +10,7 @@ document.fonts.load('16px primeicons').then(() => continueRender(iconFont));
 export const RemotionRoot: React.FC = () => (
 	<>
 		{VIDEOS.map((v) => (
-			<Composition key={v.id} id={v.id} component={v.component} durationInFrames={v.frames} fps={30} width={1920} height={1080} />
+			<Composition key={v.id} id={v.id} component={v.component} durationInFrames={v.frames} fps={30} width={v.width ?? 1920} height={v.height ?? 1080} />
 		))}
 	</>
 );

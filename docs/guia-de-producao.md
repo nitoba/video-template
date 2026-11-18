@@ -426,6 +426,8 @@ precisa parecer feito por um artista de motion.
 | Fundos (`Mesh`, `Dark`, `Paper`, `Backdrop`), legenda cinética (`Words`), cartão de vidro (`Glass`), odômetro (`Odo`), HUD, pílula com linha-guia, janela do app (`Browser`), cursor, foco (`Spot`), ondas, faíscas, clarão, íris | `src/kit/fx.tsx` |
 | Telas reais em sequência e encaixe de captura | `src/kit/shots.tsx` (`ShotSeq`, `fitShot`) |
 | Lottie preso ao quadro | `src/kit/lottie.tsx` (`LottieAt`) |
+| Sequência encadeada (muitos elementos, stagger, rótulos, posição relativa) | `useGsapTimeline` do `@remotion/gsap`; exemplo em `src/videos/exemplo-skia-gsap/Video.tsx` |
+| Líquido 2D (gotas que se fundem e se separam: desfoque com limiar) e base para outros efeitos Skia | `src/kit/skia.tsx` (`Liquido`) |
 | Fecho com partículas formando o logo da marca | `src/kit/LogoFinal.tsx` |
 | Marcas (cores, céus, fontes, logo, rodapé) | `src/brands/*.tsx` |
 | Grão, shaders, partículas, câmera 3D | `src/core/` |
@@ -435,6 +437,8 @@ precisa parecer feito por um artista de motion.
 | Render em blocos paralelos + mux da trilha | `bun run render <slug>` (`scripts/render.sh`) |
 | Narração: corte das bordas, encaixe nas janelas, ducking e mix | `bun run narrar <slug>` (`scripts/narrar.mjs`) |
 | Folha de quadros por tempo da música | `bun run folha <slug> <tempos...>` (`scripts/folha.sh`) |
+| Conferência medida do MP4: trechos parados, quadros vazios, saltos, pops, silêncios, LUFS e pico real | `bun run conferir <slug>` (`scripts/conferir.mjs`) |
+| Análise de áudio com librosa: curva de energia por marco, som atrasado em relação à imagem, grade de batidas de uma faixa externa | `bun run audio <slug>` e `bun run audio --musica faixa.wav` (`scripts/audio.py`, roda pelo `uv`) |
 | Exemplo de telas recriadas em React (quando não dá para capturar), RAT/documento, remendo de estado | `src/videos/exemplo-validacao/web.tsx`, `rat.tsx`, `real.tsx` |
 
 ### Armadilhas conhecidas
@@ -455,6 +459,12 @@ precisa parecer feito por um artista de motion.
   `fit(box, zoom, sx, sy)` põe a caixa onde você quer na tela; `toScreen(view, x, y)` faz o
   caminho inverso para o que fica em px de tela (pílulas, cursor).
 - Arquivos `.pen` (design system) só se leem pelas ferramentas do Pencil MCP.
+- Skia: `@shopify/react-native-skia` fica preso na **2.0.0** (a do template oficial do Remotion). A 2.14 importa
+  `react-native` direto e o bundle quebra. O `LoadSkia` vem de `@shopify/react-native-skia/lib/module/web`
+  (o `src/web` da documentação quebra o `tsc`). Se um efeito Skia ficar lento no render, use `--gl=angle` (o
+  `remotion.config.ts` já usa ANGLE).
+- GSAP: o `useGsapTimeline` recusa callbacks (`onComplete`, `call`), `play`/`seek`, `random` e stagger aleatório, e
+  tween em objeto comum congela no render. Estado que depende do tempo sai de `useCurrentFrame`, não do GSAP.
 
 - Chaves de câmera (`CAM_*`), de cursor (`PTR*`) e de rolagem precisam estar em **tempo crescente**.
   Ao deslocar marcos, uma chave escrita como `M.x + 3` pode passar da seguinte e a câmera salta.
@@ -483,3 +493,172 @@ precisa parecer feito por um artista de motion.
 9. Trilha com a curva de energia, o tema, um silêncio e o J-cut. Conferir LUFS e forma de onda.
 10. Render completo (`bun run render <slug>`), mix da narração (`bun run narrar <slug>`), folha de contato do mp4 e `ffprobe`
     (quadros, duração, áudio).
+11. Conferência medida (seção 10): `bun run conferir <slug>` e `bun run audio <slug>`, com cada achado explicado ou
+    corrigido, e a revisão final por um crítico de contexto limpo.
+
+## 10. Conferência medida
+
+A folha de quadros mostra o que está errado **num quadro**. O que está errado **no tempo** (tela parada, salto de
+câmera, som atrasado) só aparece medindo o arquivo final. Compilar e renderizar não é entregar: o entregável é o
+filme, conferido no MP4 decodificado, não nas capturas do Studio.
+
+### O que rodar
+
+- **`bun run conferir <slug>`** lê `out/<slug>-narrado.mp4` (ou `out/<slug>.mp4`) e lista, em segundos, em tempos da
+  música e com o marco mais próximo:
+  - **trechos parados ou em deriva lenta** (quase nada muda por 0,5 s ou mais) e quanto do vídeo eles somam. Foi
+    exatamente a queixa "imagem parada com um pequeno zoom". Meta: nenhum trecho acima de 0,5 s sem algo acontecendo,
+    fora os holds de leitura planejados e o fecho;
+  - **quadros vazios** (papel liso sem sujeito), típicos de abertura atrasada e de transição com um buraco no meio;
+  - **pops de um quadro** (algo aparece e some) e **saltos isolados**. Salto isolado é corte seco planejado ou chave
+    de câmera, cursor ou rolagem fora de ordem (armadilha da seção 8): confira cada um contra o roteiro;
+  - **silêncios** de 0,4 s ou mais (deve existir o planejado e nenhum outro), **LUFS** e **pico real medidos depois do
+    AAC**, e se o áudio começa fora de sincronia com a imagem.
+- **`bun run audio <slug>`** (librosa) mostra a **curva de energia** da trilha entre os marcos, para comparar com a
+  curva do roteiro (seção 7), e a distância entre cada marco e o ataque de som mais próximo. "SOM ATRASADO" é som
+  chegando mais de 1,5 quadro depois da imagem, o contrário do J-cut. Marco sem som não é erro: som em tudo é
+  *mickey mousing*.
+- **Para olhar um achado:** os tempos do relatório entram direto em `bun run folha <slug> <tempos...>`.
+
+É um relatório, não um veredito. Cada linha recebe uma resposta: "planejado, porque..." ou a correção.
+
+### Regras que dá para medir
+
+Números de partida, vindos dos repositórios da seção 11; valem até um feedback do cliente dizer outra coisa.
+
+| Regra | Medida |
+|---|---|
+| Tempo de leitura | Todo texto fica inteiro em quadro por pelo menos `caracteres ÷ 15 + 1,5` s. |
+| Tamanho de texto | Legenda com 56 px efetivos ou mais (5,2% da altura) e texto de apoio com 32 px ou mais, medidos no quadro renderizado (fonte × escalas × cosseno da rotação). Teste: reduza o quadro para 480 px de largura e leia. |
+| Captura ampliada | Pelo menos 1 px de captura por px de tela em todo quadro. Uma captura de 3360 px de largura aguenta zoom de até 1,75× no quadro de 1920 (a de 2880, até 1,5×); acima disso, recapture o trecho em escala maior ou erga uma `Peca`. |
+| Primeiro quadro | O quadro zero já é uma imagem pronta. Gancho em 3 s, sem abertura de logo. |
+| Marca e holds | Logo parado por 1 s ou mais; 0,5 s de respiro depois de uma entrada em lote; comparação inteira em quadro por 2,5 s antes do veredito. |
+| Impacto de tela inteira | No máximo 3 por vídeo (tremor, clarão, carimbo), bem separados. Batida comum move só elementos. |
+| Sujeito | Ocupa pelo menos um terço da altura e nunca fica sob a legenda. |
+| Diferença do vídeo anterior | De seis itens (estrutura, abertura, plano-assinatura, caminho da câmera, forma da trilha e fecho), pelo menos quatro mudam. |
+
+### Revisão final por quem não construiu
+
+Quem construiu o vídeo não o julga. Antes de entregar, passe para um subagente de contexto limpo o MP4, quadros a
+cada 0,5 s, o tratamento, o roteiro, o relatório do `conferir` e as regras desta seção e da tabela de rejeições
+(seção 1), **sem o histórico e sem justificativas**. Ele devolve, por item, ✓ ou ✗ com o número do quadro; o que
+não deu para ver vira "não verificável", nunca ✓. Corrija e registre a rodada no README do vídeo.
+
+## 11. O que tiramos de fora (novembro de 2026)
+
+Análise de sete repositórios: duas coleções de prompts de vídeos feitos em código
+(`yihui-dev/awesome-opus5-5-videos`, `joeseesun/opus-video-prompts`), duas skills de vídeo
+(`Vincentwei1021/video-shotcraft`, `lemomo-ai/lemo-opuscar`) e três bibliotecas (`pmndrs/react-three-rapier`,
+`pmndrs/react-postprocessing`, `librosa/librosa`). Os parâmetros abaixo foram lidos nos documentos deles, não
+medidos aqui, e os próprios autores os tratam como ponto de partida. Vale a regra de sempre: **princípio, nunca
+estilo.**
+
+### Movimento
+
+- **Desfoque que sai da velocidade, com teto.** Desfoque = deslocamento do quadro × coeficiente, na direção do
+  movimento, e zero abaixo de 8 px por quadro. Em interface clara, o teto é baixo (cerca de 8 px num voo de câmera;
+  até 30 no scroll e 64 no chicote): acima disso lê como fora de foco. O `motionBlur` de `src/kit/timeline.tsx` já
+  segue a ideia; ao mexer nele, mantenha o teto.
+- **Chicote com freada:** uma curva de velocidade só (70% do percurso em 30% do tempo), hold de 20 quadros antes e
+  cauda de saída perto de 48 quadros. Dois ease-out emendados dão tranco.
+- **Uma transição por emenda,** e os quadros dela saem do orçamento das cenas vizinhas já no roteiro.
+- **A transição nasce do objeto anterior:** a linha do gráfico vira a borda do documento, o cartão clicado cresce
+  até virar a tela. Uma transição que demonstra a feature vale mais que qualquer efeito.
+- **Todo voo termina num lugar real do layout.** Peça que pousa "mais ou menos ali" lê como montagem.
+- **O cursor é a mão, a câmera é o olho.** O cursor sai antes da câmera e chega antes dela (uns 6 quadros), clica
+  depois que ela assenta e encolhe para cerca de 0,84 em 3 quadros.
+- **Arraste é manipulação direta:** enquanto o cursor segura, o valor vem da posição dele; ao soltar, a mola parte
+  da posição e da velocidade de soltura.
+- **Título:** posição, desfoque e opacidade presos ao mesmo progresso, por palavra (4 quadros entre palavras), e
+  não por letra. Um título pode encolher e virar o rótulo da cena seguinte, em vez de sumir.
+- **Congelar e anotar:** parar o tempo por 1,5 s para circular um dado funciona, no máximo duas vezes em 30 s.
+- **Leitura da máquina** (IA lendo um documento): a linha de varredura anda em velocidade constante, sem easing, e
+  usa uma cor "de máquina" diferente da cor da marca.
+
+### Do genérico ao trabalhado (`src/kit/corpo.tsx`)
+
+O motion genérico tem cara de slide animado: tudo é rígido, tudo entra com a mesma curva, a câmera vai de um ponto
+ao outro e para, e a sombra anda colada na peça. O que muda isso não é mais efeito; é **cada peça parecer ter
+corpo e a câmera parecer ter alguém atrás**. Lido no código de `video-shotcraft` (`assets/lib/helpers/motion.ts`)
+e de `lemo-opuscar` (`core/lib.js`, `styles/desktop-flythrough/demo/src/camera.js`), e trazido para o kit:
+
+| Genérico | Trabalhado | No kit |
+|---|---|---|
+| Câmera com ease entre chaves: acelera, para, acelera, para | Uma curva só pelas chaves; a velocidade é contínua e a câmera só para onde duas chaves repetem a View | `trilho` (e `viewAt`, que agora usa a mesma curva); no `Stage`, a prop `trilho` |
+| Câmera reta, que desliza | Inclina nas curvas, como quem vira o corpo, e respira numa deriva que não se repete | automático no `Stage` com `trilho` (`deriva`) |
+| Cena ilustrada plana: tudo no mesmo plano | Cada peça numa profundidade; o que está perto anda mais (paralaxe de verdade, pela perspectiva) | `<Prof z={...}>` |
+| Tudo preso à câmera como adesivo | Rótulos e selos seguem a câmera com alguns quadros de atraso | `<Prof lag={3}>` |
+| Tudo nítido o tempo todo | O que não é o assunto sai de foco e perde cor quando a câmera vai ao detalhe | `<Prof fora={0..1}>` (nunca em texto a ser lido) |
+| `box-shadow` colado na peça | A sombra fica no papel: cresce, amolece e escorrega quando a peça sobe, firma quando pousa | `Sombra`; o `Card` com `h` já usa |
+| Peça que chega e simplesmente para | Achata por 2 quadros no pouso e volta numa mola curta | `pouso(f, quadro, força)` |
+| Desfoque redondo no chicote | Desfoque só no eixo do movimento, com teto baixo em interface clara | `Rastro`; automático no `Stage` |
+| Estica, tremor e rastro com valores fixos | Derivados da velocidade da própria trajetória | `velocityAt`, `estica`, `dampedSettle` |
+
+Regras de uso, dos mesmos repositórios:
+
+- **Levantar uma peça só vale se der para ver:** menos de 12 px de deslocamento na tela não lê; use 28 px ou mais,
+  e uma peça por vez (duas no ar e ninguém sabe qual foi chamada).
+- **Ícone que se apresenta ocupa o centro e salta cada vez mais alto,** com o tempo no ar proporcional à raiz da
+  altura; saltos iguais leem como "carregando".
+- **Paralaxe precisa de âncoras:** entre uma camada e a seguinte, o dobro de velocidade, e desfoque ou menos cor no
+  que está longe. Sem isso, lê como adesivos voando. No máximo quatro camadas.
+- **A camada que se lê nunca desfoca,** e desfoque em camada de tela inteira é caro no render: ponha em peças
+  pequenas.
+- **Uma só coisa mexe no tempo por cena** (congelar, rampa de velocidade ou pausa de impacto), nunca duas.
+- **A cena entra já perto do primeiro assunto.** Se o clique vem em menos de 1 s, a câmera não tem tempo de entrar
+  e viajar: as duas coisas competem e o quadro vira borrão. Abra enquadrado no botão e viaje depois.
+- **Chaves de câmera em quadros crescentes:** `trilho` recusa chaves repetidas ou fora de ordem com um erro que diz
+  quais são (dois marcos podem cair no mesmo tempo, como `ciclo` e `cSync` na Validação).
+- **Escala da captura até cerca de 1,08.** `s` é px de tela por px de captura; acima de 1 a captura borra. O ganho
+  vem do percurso da câmera até o trecho, não do zoom.
+- **Tudo é função pura do quadro.** Atraso é a mesma trajetória lida alguns quadros antes; nada acumula estado.
+
+### Cor e tratamento
+
+- **Cor com significado fixo durante o vídeo todo.** O acento da marca só para "o que importa agora"; vermelho só
+  para falha; verde só para sucesso; o amarelo do marca-texto só para cópia. "Novo neste passo" pode ter cor e
+  depois perder.
+- **Três estruturas candidatas antes de escolher** (a primeira ideia costuma ser o clichê), o **porquê de cada
+  plano**, **o que o vídeo não é** e uma **tabela de som por trecho** que se confere na entrega. Já estão no molde
+  `src/videos/_modelo/tratamento.md`.
+- **Lista de proibições no tratamento.** Foi o recurso mais repetido nos prompts que deram certo; a nossa nasce da
+  tabela de rejeições da seção 1.
+
+### Som
+
+- **A batida visual pendura na palavra falada.** Em vídeo narrado, o marco de um gesto é o instante da palavra que
+  o nomeia, não o início da frase. O `creative_transcribe_audio` da ElevenLabs e o `bun run audio` dão esses tempos.
+- **Efeito posicionado pelo pico, não pelo início do arquivo.** O ataque de um som pode vir 2 a 24 quadros depois
+  do começo da amostra. Na trilha sintetizada o ataque é imediato; em amostra gravada, meça.
+- **O AAC atrasa o áudio** em pouco mais de 1 quadro (48 kHz, 30 fps). O `conferir` avisa quando o arquivo final
+  ficou fora de sincronia.
+- **Dois J-cuts ou L-cuts por vídeo** além do silêncio planejado, e o chiado de câmera proporcional à velocidade
+  dela.
+
+### As três bibliotecas
+
+- **librosa:** adotada em `scripts/audio.py`. A trilha é sintetizada, então a grade já é conhecida; a biblioteca
+  serve para **conferir** (curva de energia, som atrasado) e para o dia em que entrar uma faixa de fora
+  (`--musica`: BPM por mínimos quadrados sobre as batidas, porque o escalar do `beat_track` erra perto de 2%, e
+  aviso quando o tempo não dá um número inteiro de quadros).
+- **Rapier (`@react-three/rapier` v2, compatível com React 19 e fiber 9):** não instalada. Física é simulação com
+  estado e o Remotion renderiza quadros fora de ordem, em abas paralelas; nos prompts analisados, vários proíbem
+  física acumulada por isso. Se uma cena pedir colisão de verdade (pilha de documentos caindo, itens escoando por
+  um funil), simule **uma vez**, com passo fixo e semente fixa (`@dimforge/rapier2d-compat`), guarde as trajetórias
+  em JSON e toque como função do quadro. Só vale quando o empilhamento ou o choque diz algo sobre a feature;
+  queda, quique e estilhaço continuam com molas.
+- **Pós-processamento (`@react-three/postprocessing` 3.2):** não instalada. Ela age sobre um canvas do Three, e as
+  cenas do kit são DOM com CSS 3D; só serviria às cenas de `src/core/` (partículas, logo). O que se aproveita é o
+  princípio: **profundidade de campo só atrás do foco e nunca sobre texto a ser lido**, bloom tênue só no
+  protagonista e uma vez, e grão aplicado no `ffmpeg` (`noise`) em vez de desenhado na página, que torna cada
+  quadro incompressível.
+
+### O que não trazer
+
+- Fundo escuro com vidro, grão e halation, mundos 3D e mascotes: é o que já foi rejeitado (seção 1).
+- Interface recriada em HTML ou "a partir do design system": contraria as capturas reais (seção 4).
+- Meio-tom, risografia ou dossiê como look inteiro: trocam a identidade da marca.
+- "Não pare para pedir aprovação" e rodada única de correção: contrariam tratamento e prova.
+- Música e efeitos baixados da internet, e modelos de vídeo ou de música: risco de licença e custo, e a trilha já é
+  sintetizada.
+- Arco de energia com porcentagens fixas: vira a estrutura repetida que já foi rejeitada.

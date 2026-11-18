@@ -7,11 +7,13 @@ import {AbsoluteFill, random, useCurrentFrame} from 'remotion';
 import {IbsLogo} from '../../brands/agrotrace';
 import {PEC_ICON_PATHS, PEC_TEXT_PATHS} from '../../brands/paths-pectrace';
 import {PecLogo} from '../../brands/pectrace';
+import {ROBOTO} from '../../core/fonts';
 import {Grain} from '../../core/Grain';
 import {Paper} from '../../core/Paper';
 import {GrainCanvas, type GrainSpec, hexToRgbTuple, sampleShapePoints} from '../../kit/grains';
 import {LottieAt} from '../../kit/lottie';
-import {back, Card, CardHeader, Chip, Cursor, type Dir, Dust, Headline, Icon, ICONES, KV, type Layer, Layers, Legendas, liftOf, type MotionTheme, MotionProvider, Odo, Peca, pop, type Rect, Ruler, shake, Spot, Stage, Svg, typed, viewAt} from '../../kit/motion';
+import {back, Card, CardHeader, Chip, Cursor, type Dir, Dust, Enquadre, Headline, Icon, ICONES, KV, type Layer, Layers, Legendas, liftOf, type MotionTheme, MotionProvider, Odo, Peca, pop, type Rect, Ruler, shake, Spot, Stage, Svg, typed, viewAt} from '../../kit/motion';
+import {CamProvider, pouso, Prof, trilho} from '../../kit/corpo';
 import {Plano, type View, planoToScreen, viewMatching} from '../../kit/plano';
 import {EASE, lerp, OUT, ramp, VideoProvider} from '../../kit/timeline';
 import {b, BRAND, LEGENDAS, lottie, M, s, sp, T, TIMELINE, tela} from './story';
@@ -52,19 +54,23 @@ const GAVETA_COPIA: [number, number, number, number, number][] = [[1958, 0, 1402
  * Modal do CMS (capturas de 2880) em partes: cabeçalho, abas, (cartão do topo), menu, conteúdo e rodapé. Os
  * destaques (`heroes`) vêm à frente como peças próprias.
  */
-const cmsLayers = (at0: number, topcard: boolean, heroes: Rect[] = []): Layer[] => {
+const cmsLayers = (at0: number, topcard: boolean, heroes: Rect[] = [], persist = false): Layer[] => {
 	const y0 = topcard ? 780 : 445;
-	const parts: [Rect, number][] = [
-		[{x: 289, y: 115, w: 2299, h: 165}, 30],
-		[{x: 289, y: 300, w: 2299, h: 145}, 20],
-		...(topcard ? ([[{x: 330, y: 465, w: 2210, h: 300}, 50]] as [Rect, number][]) : []),
-		[{x: 300, y: y0, w: 490, h: 1530 - y0}, 10],
-		[{x: 800, y: y0, w: 1760, h: 1530 - y0}, 35],
-		[{x: 289, y: 1530, w: 2299, h: 154}, 15],
+	// `persist`: a moldura do modal (cabeçalho, abas, rodapé) já está no lugar; só o miolo troca, como ao clicar numa aba.
+	const parts: [Rect, number, boolean][] = [
+		[{x: 289, y: 115, w: 2299, h: 165}, 30, true],
+		[{x: 289, y: 300, w: 2299, h: 145}, 20, true],
+		...(topcard ? ([[{x: 330, y: 465, w: 2210, h: 300}, 50, false]] as [Rect, number, boolean][]) : []),
+		[{x: 300, y: y0, w: 490, h: 1530 - y0}, 10, false],
+		[{x: 800, y: y0, w: 1760, h: 1530 - y0}, 35, false],
+		[{x: 289, y: 1530, w: 2299, h: 154}, 15, true],
 	];
+	let n = 0;
 	return [
-		...parts.map(([r, z], i) => ({r, z, at: at0 + 2 + i * 3, from: {y: 120 + i * 20, z: -500, rx: 30}})),
-		...heroes.map((r, i) => ({r, z: 110, at: at0 + 22 + i * 5, from: {y: 60, z: -200, rx: 50}})),
+		...parts.map(([r, z, moldura], i) =>
+			persist ? (moldura ? {r, z, at: -999} : {r, z, at: at0 + 1 + n++ * 3, from: {x: 0, y: 46, z: -90, rx: 10}}) : {r, z, at: at0 + 2 + i * 3, from: {y: 120 + i * 20, z: -500, rx: 30}},
+		),
+		...heroes.map((r, i) => ({r, z: 110, at: at0 + (persist ? 14 : 22) + i * 5, from: {y: 60, z: -200, rx: 50}})),
 	];
 };
 
@@ -121,7 +127,7 @@ const AtoNumero: React.FC = () => {
 			}),
 		[],
 	);
-	const from = b(M.numero) - 10;
+	const from = 0;
 	const to = at(M.rat, 0.4);
 	const Z = b(M.zip);
 	// Câmera: entra inclinada sobre a grade e acompanha o fluxo até a caixa.
@@ -129,13 +135,14 @@ const AtoNumero: React.FC = () => {
 	useLayoutEffect(() => {
 		const ctx = ref.current?.getContext('2d');
 		if (!ctx) return;
+		ctx.setTransform(2, 0, 0, 2, 0, 0);
 		ctx.clearRect(0, 0, 1920, 1080);
 		const bx = BOX.x + BOX.w / 2;
 		const by = BOX.y + BOX.h / 2;
 		const wave = ramp(f, b(M.nenhum), b(M.nenhum) + 26) * 1.5;
 		for (const d of dots) {
 			// Surge em onda a partir do centro, passando um pouco do tamanho e voltando.
-			const a0 = b(M.numero) + d.d * 34 + d.j * 6;
+			const a0 = -16 + d.d * 34 + d.j * 6;
 			const appear = ramp(f, a0, a0 + 12);
 			if (appear <= 0) continue;
 			const t0 = Z + (d.c / GRID.cols) * 46 + d.j * 18;
@@ -159,18 +166,36 @@ const AtoNumero: React.FC = () => {
 	const recv = ramp(f, at(M.zip, 0.7), at(M.zip, 2.8));
 	const hit = recv > 0 && recv < 1 ? Math.abs(Math.sin(f * 0.9)) * 0.05 : 0;
 	const rx = lerp(14, 4, ramp(f, from, Z, OUT)) + Math.sin(f / 70) * 1;
+	// A câmera abre colada no número, recua até caber a grade inteira e segue o fluxo até a caixa.
+	const camAt = trilho([
+		[0, {fx: 800, fy: 410, s: 1.3}],
+		[b(M.numero) + 16, {fx: 810, fy: 420, s: 1.27}],
+		[b(M.nenhum) - 8, {fx: 930, fy: 520, s: 1.04}],
+		[b(M.nenhum) + 34, {fx: 945, fy: 530, s: 1.0}],
+		[Z - 6, {fx: 960, fy: 540, s: 1.0}],
+		[Z + s(2.2), {fx: 1200, fy: 560, s: 1.14}],
+		[b(M.rat), {fx: 1500, fy: 570, s: 1.3}],
+		[to + 16, {fx: 1500, fy: 570, s: 1.32}],
+	]);
 	return (
 		<AbsoluteFill style={{opacity: 1 - out, filter: out > 0.01 ? `blur(${out * 8}px)` : undefined, perspective: 2200}}>
-			<AbsoluteFill style={{transform: `translateX(${-pan * 160}px) rotateX(${rx}deg) rotateY(${-pan * 6}deg) scale(${lerp(0.96, 1.02, ramp(f, from, to, (x) => x))})`}}>
-				<div style={{position: 'absolute', left: GRID.x, top: 110, opacity: Math.min(1, head), transform: `translateY(${(1 - head) * 30}px)`, display: 'flex', alignItems: 'baseline', gap: 24}}>
+			<AbsoluteFill style={{transform: `rotateX(${rx}deg) rotateY(${-pan * 6}deg)`, transformStyle: 'preserve-3d'}}>
+				<CamProvider at={camAt}>
+				<Enquadre v={camAt(f)}>
+				<Prof z={90} lag={3}>
+				<div style={{position: 'absolute', left: GRID.x, top: 110, opacity: Math.min(1, head) * (1 - ramp(f, Z + 30, Z + 52)), transform: `translateY(${(1 - head) * 30}px)`, display: 'flex', alignItems: 'baseline', gap: 24}}>
 					<Odo value={count} digits={4} size={124} />
 					<span style={{fontFamily: UI, fontSize: 34, color: INK_SOFT}}>atendimentos concluídos na JBS</span>
 				</div>
-				<div style={{position: 'absolute', left: GRID.x, top: 252, opacity: Math.min(1, none * 1.5), display: 'flex', alignItems: 'baseline', gap: 16}}>
+				</Prof>
+				<Prof z={50} lag={2}>
+				<div style={{position: 'absolute', left: GRID.x, top: 252, opacity: Math.min(1, none * 1.5) * (1 - ramp(f, Z + 24, Z + 46)), display: 'flex', alignItems: 'baseline', gap: 16}}>
 					<span style={{fontFamily: UI, fontSize: 30, color: INK_SOFT}}>conferidos:</span>
 					<span style={{display: 'inline-block', fontFamily: DISPLAY, fontWeight: 700, fontSize: 56, color: ORANGE, transform: `scale(${lerp(2.6, 1, Math.min(1.2, none))}) rotate(${(1 - none) * -12}deg)`, transformOrigin: '20% 80%'}}>0</span>
 				</div>
-				<canvas ref={ref} width={1920} height={1080} style={{position: 'absolute', inset: 0}} />
+				</Prof>
+				<canvas ref={ref} width={3840} height={2160} style={{position: 'absolute', left: 0, top: 0, width: 1920, height: 1080}} />
+				<Prof z={60}>
 				<Card x={BOX.x} y={BOX.y} w={BOX.w} h={BOX.h} k={box} style={{display: 'grid', placeItems: 'center', textAlign: 'center', transform: `translateY(${(1 - box) * 44}px) rotate(${(1 - box) * -5}deg) scale(${lerp(0.88, 1, box) * (1 + hit)}, ${lerp(0.88, 1, box) * (1 - hit)})`}}>
 					<div>
 						<div style={{display: 'flex', justifyContent: 'center', marginBottom: 14}}>
@@ -183,6 +208,9 @@ const AtoNumero: React.FC = () => {
 						</div>
 					</div>
 				</Card>
+				</Prof>
+				</Enquadre>
+				</CamProvider>
 			</AbsoluteFill>
 		</AbsoluteFill>
 	);
@@ -223,30 +251,55 @@ const AtoRat: React.FC = () => {
 	const sk = shake(f, stampAt, 16);
 	const sx = BOX.x + BOX.w / 2 - RAT_W / 2;
 	const sy = BOX.y + BOX.h / 2 - RAT_H / 2;
+	const CAMPO = {fx: RAT_CX + RZ.produtor.x + RZ.produtor.w / 2 - 70, fy: RAT_CY + 286};
+	const camAt = trilho([
+		[from, {fx: 1500, fy: 570, s: 1.3}],
+		[from + 10, {fx: 1490, fy: 566, s: 1.3}],
+		[from + 40, {fx: 960, fy: 450, s: 1.22}],
+		[b(M.semAssin) - 8, {fx: 960, fy: 460, s: 1.3}],
+		[at(M.semAssin, 0.8), {...CAMPO, s: 1.62}],
+		[b(M.jbs) - 10, {...CAMPO, fx: CAMPO.fx + 16, s: 1.7}],
+		[at(M.jbs, 1.0), {fx: 1400, fy: 440, s: 1.32}],
+		[b(M.volta), {fx: 1380, fy: 440, s: 1.36}],
+		[at(M.volta, 0.6), {fx: 1240, fy: 440, s: 1.25}],
+		[at(M.agora, 0.5), {fx: 960, fy: 440, s: 1.2}],
+		[at(M.agora, 1.2), {fx: 960, fy: 450, s: 1.26}],
+		[at(M.agora, 2.1), {...CAMPO, s: 1.6}],
+		[to, {...CAMPO, fx: CAMPO.fx - 14, s: 1.7}],
+	]);
+	const foco = camAt(f);
+	// O que não é o assunto sai de foco quando a câmera vai ao campo vazio.
+	const noCampo = ramp(f, b(M.semAssin), at(M.semAssin, 0.8)) * (1 - ramp(f, b(M.jbs) - 12, b(M.jbs) + 6));
+	const tilt = Math.sin(f / 60) * 1.4;
 	const arc = Math.sin(G * Math.PI) * -160;
-	const x = lerp(lerp(sx, RAT_CX, G), RAT_CX + 360, toJbs) + recoil;
+	const x = lerp(lerp(sx, RAT_CX, G), RAT_CX + 300, toJbs) + recoil;
 	const y = lerp(sy, RAT_CY, G) + arc * (1 - G) + Math.sin(toJbs * Math.PI) * -30;
 	const scale = lerp(0.03, 1, grow) * lerp(1, 0.74, toJbs) * (1 - out * 0.2);
 	const rot = (1 - G) * -28 + Math.sin(toJbs * Math.PI) * 6 + recoil * -0.15;
 	return (
-		<AbsoluteFill style={{opacity: 1 - out, filter: out > 0.01 ? `blur(${out * 8}px)` : undefined, transform: `translate(${sk.x}px, ${sk.y}px)`}}>
-			<Card x={1470} y={300} w={330} h={260} k={jbsK} style={{display: 'grid', placeItems: 'center', textAlign: 'center'}}>
+		<AbsoluteFill style={{opacity: 1 - out, filter: out > 0.01 ? `blur(${out * 8}px)` : undefined, transform: `translate(${sk.x}px, ${sk.y}px)`, perspective: 2400}}>
+			<AbsoluteFill style={{transform: `rotateX(${3 + tilt}deg) rotateY(${lerp(-7, 6, ramp(f, from, to, (x) => x))}deg)`}}>
+			<CamProvider at={camAt}>
+			<Enquadre v={foco}>
+			<Prof z={-70} fora={noCampo}>
+			<Card x={1570} y={300} w={300} h={260} k={jbsK} style={{display: 'grid', placeItems: 'center', textAlign: 'center'}}>
 				<div>
 					<div style={{fontFamily: DISPLAY, fontWeight: 700, fontSize: 64, color: INK}}>JBS</div>
 					<div style={{fontFamily: UI, fontSize: 22, color: INK_SOFT}}>recebe o zip</div>
 				</div>
 			</Card>
+			</Prof>
 			<RatFicha x={x} y={y} scale={scale} rot={rot} wob={wob} produtor={f >= at(M.agora, 1.1) ? 'alerta' : 'erro'} k={f >= at(M.agora, 1.1) ? alertK : err} />
 			{err > 0 && toJbs < 0.4 && (
-				<div style={{position: 'absolute', left: x + RZ.produtor.x * scale + (RAT_W * (1 - scale)) / 2, top: y + (RZ.produtor.y + RZ.produtor.h + 14) * scale + (RAT_H * (1 - scale)) / 2, opacity: err * (1 - alertK), transform: `translateY(${(1 - err) * 12}px)`}}>
+				<Prof z={70} lag={3}><div style={{position: 'absolute', left: x + RZ.produtor.x * scale + (RAT_W * (1 - scale)) / 2, top: y + (RZ.produtor.y + RZ.produtor.h + 14) * scale + (RAT_H * (1 - scale)) / 2, opacity: err * (1 - alertK), transform: `translateY(${(1 - err) * 12}px)`}}>
 					<Chip tone="red">sem assinatura do produtor</Chip>
-				</div>
+				</div></Prof>
 			)}
 			{stamp > 0.01 && (
-				<div style={{position: 'absolute', left: RAT_CX + 380, top: RAT_CY + 70, transform: `rotate(-9deg) scale(${lerp(2.2, 1, Math.min(1.1, stamp))})`, opacity: Math.min(1, stamp * 3), border: `4px solid ${RED}`, borderRadius: 14, padding: '8px 20px', background: 'rgba(255,248,244,0.85)', fontFamily: DISPLAY, fontWeight: 700, fontSize: 40, letterSpacing: '0.05em', color: RED, textTransform: 'uppercase', boxShadow: `0 ${(1 - Math.min(1, stamp)) * 30}px ${(1 - Math.min(1, stamp)) * 40}px rgba(102,50,17,0.25)`}}>
+				<Prof z={150}><div style={{position: 'absolute', left: RAT_CX + 380, top: RAT_CY + 70, transform: `rotate(-9deg) scale(${lerp(2.2, 1, Math.min(1.1, stamp))})`, opacity: Math.min(1, stamp * 3), border: `4px solid ${RED}`, borderRadius: 14, padding: '8px 20px', background: 'rgba(255,248,244,0.85)', fontFamily: DISPLAY, fontWeight: 700, fontSize: 40, letterSpacing: '0.05em', color: RED, textTransform: 'uppercase', boxShadow: `0 ${(1 - Math.min(1, stamp)) * 30}px ${(1 - Math.min(1, stamp)) * 40}px rgba(102,50,17,0.25)`}}>
 					Rejeitado
 					<div style={{fontFamily: UI, fontSize: 20, fontWeight: 600, letterSpacing: 0, textTransform: 'none'}}>visita não paga</div>
-				</div>
+				</div></Prof>
 			)}
 			<GrainCanvas grains={burst} ripples={false} glow={false} tail={0.08} />
 			{now > 0 && now < 1 && (
@@ -256,10 +309,13 @@ const AtoRat: React.FC = () => {
 				</>
 			)}
 			{alertK > 0 && (
-				<div style={{position: 'absolute', left: RAT_CX + RZ.produtor.x, top: RAT_CY + RZ.produtor.y + RZ.produtor.h + 14, opacity: alertK, transform: `translateY(${(1 - alertK) * 14}px)`}}>
+				<Prof z={70} lag={3}><div style={{position: 'absolute', left: RAT_CX + RZ.produtor.x, top: RAT_CY + RZ.produtor.y + RZ.produtor.h + 14, opacity: alertK, transform: `translateY(${(1 - alertK) * 14}px)`}}>
 					<Chip>alerta antes da JBS</Chip>
-				</div>
+				</div></Prof>
 			)}
+			</Enquadre>
+			</CamProvider>
+			</AbsoluteFill>
 		</AbsoluteFill>
 	);
 };
@@ -269,12 +325,16 @@ const AtoTitulo: React.FC = () => {
 	const f = useCurrentFrame();
 	const logo = pop(f, b(M.titulo));
 	return (
-		<Stage from={b(M.titulo)} to={b(M.sync)} enter="zoom" exit="up">
-			<div style={{position: 'absolute', left: 960 - 160, top: 300, opacity: Math.min(1, logo * 2), transform: `scale(${lerp(0.4, 1, logo)}) rotate(${(1 - logo) * -20}deg)`}}>
-				<PecLogo width={320} color={INK} iconColor={ORANGE} />
-			</div>
-			<Headline text="Validação de atendimentos" y={420} size={104} k={1} at={M.titulo + 0.3} />
-			<Headline text="O erro aparece antes de chegar à JBS." y={580} size={42} k={1} at={M.titulo + 3.0} font={UI} weight={500} color={INK_SOFT} />
+		<Stage from={b(M.titulo)} to={b(M.sync)} enter="zoom" exit="up" orbit={[5, 8, 1, -7]} trilho={[[b(M.titulo), {fx: 960, fy: 450, s: 1.08}], [b(M.sync), {fx: 960, fy: 470, s: 1.3}]]}>
+			<Prof z={150} lag={5}>
+				<div style={{position: 'absolute', left: 960 - 160, top: 300, opacity: Math.min(1, logo * 2), transform: `scale(${lerp(0.4, 1, logo)}) rotate(${(1 - logo) * -20}deg)`}}>
+					<PecLogo width={320} color={INK} iconColor={ORANGE} />
+				</div>
+			</Prof>
+			<Prof z={60} lag={2}>
+				<Headline text="Validação de atendimentos" y={420} size={104} k={1} at={M.titulo + 0.3} />
+			</Prof>
+			<Headline text="O erro aparece antes de chegar à JBS." y={580} size={42} k={1} at={M.titulo + 1.7} font={UI} weight={500} color={INK_SOFT} />
 		</Stage>
 	);
 };
@@ -291,16 +351,18 @@ const AtoComo: React.FC = () => {
 					<rect x={4} y={4} width={r.w + 16} height={r.h + 12} rx={10} fill={`rgba(229,96,31,${0.06 * k})`} stroke={ORANGE} strokeWidth={3.5} strokeDasharray={2 * (r.w + r.h + 56)} strokeDashoffset={2 * (r.w + r.h + 56) * (1 - ramp(f, b(mark), b(mark) + 16, EASE))} />
 				</svg>
 				<div style={{position: 'absolute', left: 300 + r.x + r.w + 8, top: 200 + r.y + r.h / 2, width: lerp(0, 120, k), height: 2, background: ORANGE}} />
-				<div style={{position: 'absolute', left: 1150, top: ly - 22, opacity: k, transform: `translateX(${(1 - k) * 20}px)`}}>
-					<span style={{fontFamily: UI, fontSize: 30, fontWeight: 600, color: INK}}>{label}</span>
-				</div>
+				<Prof z={110} lag={4}>
+					<div style={{position: 'absolute', left: 1150, top: ly - 22, opacity: k, transform: `translateX(${(1 - k) * 20}px)`}}>
+						<span style={{fontFamily: UI, fontSize: 30, fontWeight: 600, color: INK}}>{label}</span>
+					</div>
+				</Prof>
 			</React.Fragment>
 		);
 	};
 	return (
 		<>
 			{/* Sincroniza e entra na fila. */}
-			<Stage from={b(M.sync)} to={b(M.ia)} enter="down">
+			<Stage from={b(M.sync)} to={b(M.ia)} enter="down" trilho={[[b(M.sync), {fx: 960, fy: 380, s: 1.2}], [b(M.fila) - 10, {fx: 1000, fy: 400, s: 1.34}], [at(M.fila, 1.2), {fx: 920, fy: 540, s: 1.28}], [b(M.ia), {fx: 1040, fy: 580, s: 1.36}]]}>
 				<LottieAt src={lottie('sincronizacao')} at={M.sync} x={360} y={110} w={1200} h={500} />
 				{Array.from({length: 7}, (_, i) => {
 					const k = pop(f, b(M.fila) + i * 6, {damping: 13, stiffness: 120, mass: 0.8});
@@ -310,31 +372,37 @@ const AtoComo: React.FC = () => {
 						{[0.9, 0.7, 0.8].map((w, j) => <div key={j} style={{height: 6, width: `${w * 100}%`, borderRadius: 3, background: '#efe4db', marginTop: 10}} />)}
 					</div>;
 				})}
-				<div style={{position: 'absolute', left: 1320, top: 722, opacity: spr(f, M.fila + 1)}}>
-					<Chip>fila de validação</Chip>
-				</div>
+				<Prof z={100} lag={4}>
+					<div style={{position: 'absolute', left: 1320, top: 722, opacity: spr(f, M.fila + 1)}}>
+						<Chip>fila de validação</Chip>
+					</div>
+				</Prof>
 			</Stage>
 			{/* A IA lê o RAT: contrato impresso, assinaturas e texto. */}
-			<Stage from={b(M.ia)} to={b(M.assinRef)} enter="right">
+			<Stage from={b(M.ia)} to={b(M.assinRef)} enter="right" orbit={[4, 7, 2, -6]} trilho={[[b(M.ia), {fx: 900, fy: 460, s: 1.15}], [b(M.zonaContrato) - 12, {fx: 880, fy: 440, s: 1.28}], [at(M.zonaContrato, 0.5), {fx: 960, fy: 400, s: 1.36}], [b(M.zonaAssin) - 4, {fx: 975, fy: 410, s: 1.4}], [at(M.zonaAssin, 0.6), {fx: 965, fy: 560, s: 1.36}], [b(M.zonaTexto) - 2, {fx: 975, fy: 566, s: 1.4}], [at(M.zonaTexto, 0.6), {fx: 960, fy: 480, s: 1.34}], [b(M.assinRef), {fx: 900, fy: 470, s: 1.3}]]}>
 				<RatFicha x={300} y={200} />
 				{(() => {
 					const t = ramp(f, at(M.ia, 0.3), at(M.ia, 3.3), (x) => x);
 					return t > 0 && t < 1 ? <div style={{position: 'absolute', left: 290, top: 200 + t * RAT_H - 3, width: RAT_W + 20, height: 6, borderRadius: 3, background: ORANGE, boxShadow: '0 0 24px rgba(229,96,31,0.7)', opacity: Math.sin(t * Math.PI)}} /> : null;
 				})()}
-				<LottieAt src={lottie('ia')} at={M.ia} x={1130} y={170} w={170} h={170} loop />
+				<Prof z={170} lag={7}>
+					<LottieAt src={lottie('ia')} at={M.ia} x={1130} y={170} w={170} h={170} loop />
+				</Prof>
 				{zone(RZ.contrato, M.zonaContrato, 'O contrato impresso', 388)}
 				{zone(RZ.assin, M.zonaAssin, 'As assinaturas', 630)}
 				{zone(RZ.texto, M.zonaTexto, 'O texto', 482)}
 			</Stage>
 			{/* A assinatura do consultor contra a referência do técnico. */}
-			<Stage from={b(M.assinRef)} to={b(M.sete)}>
+			<Stage from={b(M.assinRef)} to={b(M.sete)} trilho={[[b(M.assinRef), {fx: 820, fy: 370, s: 1.42}], [at(M.assinRef, 2.4), {fx: 1080, fy: 380, s: 1.5}], [b(M.sete), {fx: 960, fy: 390, s: 1.58}]]}>
 				<LottieAt src={lottie('assinatura')} at={M.assinRef} x={480} y={220} w={960} h={420} />
-				<div style={{position: 'absolute', left: 520, top: 170, opacity: spr(f, M.assinRef + 0.3)}}>
-					<Chip>assinatura no RAT</Chip>
-				</div>
-				<div style={{position: 'absolute', left: 1130, top: 170, opacity: spr(f, M.assinRef + 0.8)}}>
-					<Chip>referência do técnico</Chip>
-				</div>
+				<Prof z={100} lag={4}>
+					<div style={{position: 'absolute', left: 520, top: 170, opacity: spr(f, M.assinRef + 0.3)}}>
+						<Chip>assinatura no RAT</Chip>
+					</div>
+					<div style={{position: 'absolute', left: 1130, top: 170, opacity: spr(f, M.assinRef + 0.8)}}>
+						<Chip>referência do técnico</Chip>
+					</div>
+				</Prof>
 			</Stage>
 		</>
 	);
@@ -358,20 +426,21 @@ const AtoSete: React.FC = () => {
 		[],
 	);
 	const red = ramp(f, b(M.alerta), at(M.alerta, 0.5));
-	const stats = spr(f, M.tempoIa) * (1 - ramp(f, b(M.alerta), at(M.alerta, 0.4)));
+	const stats = spr(f, M.tempoIa) * (1 - ramp(f, b(M.gestor) - 8, b(M.gestor) + 4));
 	return (
-		<Stage from={b(M.sete)} to={b(M.email)}>
+		<Stage from={b(M.sete)} to={b(M.email)} orbit={[5, -8, 2, 7]} trilho={[[b(M.sete), {fx: 760, fy: 330, s: 1.62}], [b(M.tempoIa) - 6, {fx: 1160, fy: 340, s: 1.62}], [at(M.tempoIa, 0.7), {fx: 860, fy: 480, s: 1.45}], [b(M.alerta) - 6, {fx: 1060, fy: 490, s: 1.5}], [at(M.alerta, 0.6), {fx: 950, fy: 410, s: 1.3}], [b(M.gestor) - 4, {fx: 975, fy: 415, s: 1.32}], [at(M.gestor, 0.9), {fx: 960, fy: 480, s: 1.36}], [b(M.email), {fx: 960, fy: 560, s: 1.6}]]}>
 			{VERIFS.map((v, i) => {
-				const k = pop(f, b(M.sete) + i * 5, {damping: 9, stiffness: 160, mass: 0.7});
+				const k = pop(f, b(M.sete) + 10 + i * 5, {damping: 9, stiffness: 160, mass: 0.7});
 				const ai = ALERTAS.indexOf(i);
 				const flip = ai >= 0 ? ramp(f, b(M.alerta) + ai * 5, b(M.alerta) + ai * 5 + 14, EASE) : 0;
 				const isRed = flip > 0.5;
 				const x = TILES_X + i * (TILE + TILE_GAP);
 				const bob = Math.sin((f + i * 9) / 30) * 4 * Math.min(1, k);
+					const pz = pouso(f, b(M.sete) + 10 + i * 5 + 7, 0.16);
 				return (
 					<div key={v.nome} style={{position: 'absolute', left: x, top: TILE_Y, width: TILE, opacity: Math.min(1, k * 2), transform: `translateY(${(1 - k) * -220 + bob}px) rotate(${(1 - k) * -18}deg) perspective(800px) rotateY(${flip < 0.5 ? flip * 180 : (flip - 1) * 180}deg)`}}>
-						{isRed && <div style={{position: 'absolute', left: TILE / 2, top: -46, transform: 'translateX(-50%)', opacity: red}}><Chip tone="red">alerta</Chip></div>}
-						<div style={{width: TILE, height: TILE, borderRadius: 24, display: 'grid', placeItems: 'center', background: isRed ? RED : '#ecfdf3', boxShadow: isRed ? '0 12px 30px rgba(220,38,38,0.3)' : '0 0 0 2px #bbf7d0', transform: `scale(${isRed ? 1 + 0.1 * Math.sin(red * Math.PI) : 1})`}}>
+						{isRed && <div style={{position: 'absolute', left: TILE / 2, top: -46, transform: 'translateX(-50%)', opacity: red}}><Chip>alerta</Chip></div>}
+						<div style={{width: TILE, height: TILE, borderRadius: 24, display: 'grid', placeItems: 'center', background: isRed ? ORANGE : '#ecfdf3', boxShadow: isRed ? '0 12px 30px rgba(229,96,31,0.3)' : '0 0 0 2px #bbf7d0', transformOrigin: '50% 100%', transform: `scale(${(isRed ? 1 + 0.1 * Math.sin(red * Math.PI) : 1) * pz.sx}, ${(isRed ? 1 + 0.1 * Math.sin(red * Math.PI) : 1) * pz.sy})`}}>
 							<Svg d={v.d} color={isRed ? '#fff' : GREEN} size={48} width={2} />
 						</div>
 						<div style={{marginTop: 16, width: TILE + 40, marginLeft: -20, textAlign: 'center', fontFamily: UI, fontSize: 21, fontWeight: 500, lineHeight: 1.25, color: INK}}>{v.nome}</div>
@@ -393,13 +462,15 @@ const AtoSete: React.FC = () => {
 				})}
 			</div>
 			<GrainCanvas grains={grains} />
-			<Card x={gestorCard.x} y={gestorCard.y} w={gestorCard.w} k={spr(f, M.gestor)} style={{display: 'flex', alignItems: 'center', gap: 16}}>
+			<Prof z={120} lag={3}>
+				<Card x={gestorCard.x} y={gestorCard.y} w={gestorCard.w} h={gestorCard.h} k={spr(f, M.gestor)} style={{display: 'flex', alignItems: 'center', gap: 16}}>
 				<Icon d={D.user} bg={ORANGE} />
 				<div>
 					<div style={{fontFamily: UI, fontSize: 26, fontWeight: 600, color: INK}}>O gestor decide</div>
 					<div style={{fontFamily: UI, fontSize: 20, color: INK_SOFT}}>nada é rejeitado automaticamente</div>
-				</div>
-			</Card>
+					</div>
+				</Card>
+				</Prof>
 		</Stage>
 	);
 };
@@ -410,12 +481,14 @@ const AtoEmail: React.FC = () => {
 	const c = at(M.clique, 0.7);
 	const dive = ramp(f, c + 4, b(M.lista) + 6, EASE);
 	return (
-		<Stage from={b(M.email)} to={b(M.lista)} enter="right" exit="dive">
+		<Stage from={b(M.email)} to={b(M.lista)} enter="right" exit="dive" orbit={[6, 9, 2, -5]} trilho={[[b(M.email), {fx: 960, fy: 430, s: 1.2}], [b(M.soNovo), {fx: 960, fy: 500, s: 1.36}], [c, {fx: 975, fy: 530, s: 1.5}]]}>
 			<AbsoluteFill style={{transform: `scale(${1 + dive * 0.35})`, transformOrigin: '960px 520px'}}>
 				<LottieAt src={lottie('email')} at={M.email} x={600} y={150} w={720} h={560} />
-				<div style={{position: 'absolute', left: 0, right: 0, top: 740, display: 'flex', justifyContent: 'center', opacity: spr(f, M.soNovo)}}>
-					<Chip>só quando há alerta novo</Chip>
-				</div>
+				<Prof z={100} lag={4}>
+					<div style={{position: 'absolute', left: 0, right: 0, top: 740, display: 'flex', justifyContent: 'center', opacity: spr(f, M.soNovo)}}>
+						<Chip>só quando há alerta novo</Chip>
+					</div>
+				</Prof>
 				<Cursor x={980} y={560} click={c} />
 			</AbsoluteFill>
 		</Stage>
@@ -428,12 +501,13 @@ const ROW_EDGES = [229, 407, 585, 763, 940, 1118, 1296, 1474, 1652, 1829, 2007];
 const AtoLista: React.FC = () => {
 	const f = useCurrentFrame();
 	const L0 = b(M.lista);
-	const v = viewAt(f, [
+	const vCam = trilho([
 		[L0, {fx: 1680, fy: 1040, s: 0.54}],
 		[b(M.grave), {fx: 1640, fy: 1060, s: 0.57}],
 		[at(M.grave, 1.4), {fx: 1300, fy: 1100, s: 0.74}],
 		[b(M.dossie), {fx: 1280, fy: 1110, s: 0.78}],
 	]);
+	const v = vCam(f);
 	const k = pop(f, b(M.prontos));
 	const fill = ramp(f, at(M.prontos, 0.3), at(M.prontos, 1.6), OUT);
 	const layers: Layer[] = [
@@ -441,9 +515,9 @@ const AtoLista: React.FC = () => {
 		...ROW_EDGES.slice(0, -1).map((y0, i) => ({r: {x: 139, y: y0, w: 3063, h: ROW_EDGES[i + 1] - y0}, z: i === 8 ? 90 : 10 + (i % 2) * 14, at: L0 + 6 + i * 3, from: {y: 260 + i * 10, z: -600, rx: 40, x: (i % 2 ? 1 : -1) * 60}})),
 	];
 	return (
-		<Stage from={L0} to={b(M.dossie)} src={tela('lista')} v={v} enter="dive" base={0} orbit={[16, -14, 6, 10]} layers={<Layers src={tela('lista')} v={v} layers={layers} />}>
+		<Stage from={L0} to={b(M.dossie)} src={tela('lista')} v={v} camAt={vCam} enter="dive" base={0} orbit={[16, -14, 6, 10]} layers={<Layers src={tela('lista')} v={v} layers={layers} />}>
 			{ROW_EDGES.slice(0, -1).map((y, r) => (r === 0 ? null : <Spot key={y} v={v} r={{x: 1030, y: y + 120 - 22, w: 112, h: 44}} from={at(M.grave, 0.3) + r * 3} to={b(M.dossie)} pad={8} z={20} />))}
-			<Card x={1290} y={70} w={560} k={k * (1 - ramp(f, b(M.grave), at(M.grave, 0.5)))} style={{transform: `translateZ(160px) translateY(${(1 - k) * 44}px) rotate(${(1 - k) * -5}deg)`}}>
+			<Card x={1290} y={150} w={560} k={k * (1 - ramp(f, b(M.grave), at(M.grave, 0.5)))} style={{transform: `translateZ(160px) translateY(${(1 - k) * 44}px) rotate(${(1 - k) * -5}deg)`}}>
 				<div style={{display: 'flex', alignItems: 'baseline', gap: 14}}>
 					<Odo value={22 * fill} digits={2} size={72} sep={false} />
 					<span style={{fontFamily: UI, fontSize: 28, color: INK_SOFT}}>de 209 prontos para a JBS</span>
@@ -461,18 +535,19 @@ const CONTRATO_LINHA: Rect = {x: 2010, y: 850, w: 1300, h: 92};
 const AtoDossie: React.FC = () => {
 	const f = useCurrentFrame();
 	const D0 = b(M.dossie);
-	const v = viewAt(f, [
+	const vCam = trilho([
 		[D0, {fx: 2420, fy: 560, s: 0.78}],
 		[at(M.dossie, 1.2), {fx: 2440, fy: 600, s: 0.8}],
 		[b(M.contrato), {fx: 2660, fy: 1000, s: 1.0}],
 		[b(M.copia), {fx: 2670, fy: 1005, s: 1.04}],
 	]);
+	const v = vCam(f);
 	const layers = gaveta(D0, GAVETA_CONTRATO);
 	return (
-		<Stage from={D0} to={b(M.copia)} src={tela('dossie-contrato')} v={v} enter="fade" base={0.35} blur={0.6 + liftOf(f, b(M.contratoPeca))} orbit={[8, 10, 4, -6]} layers={<Layers src={tela('dossie-contrato')} v={v} layers={layers} />}>
+		<Stage from={D0} to={b(M.copia)} src={tela('dossie-contrato')} v={v} camAt={vCam} enter="fade" base={0.35} blur={0.6 + liftOf(f, at(M.contrato, 0.8))} orbit={[8, 10, 4, -6]} layers={<Layers src={tela('dossie-contrato')} v={v} layers={layers} />}>
 			<Spot v={v} r={{x: 1995, y: 28, w: 480, h: 80}} from={at(M.dossie, 0.7)} to={b(M.contrato)} z={30} />
-			<Spot v={v} r={CONTRATO_LINHA} from={at(M.contrato, 0.3)} to={b(M.contratoPeca)} z={70} />
-			<Peca v={v} r={CONTRATO_LINHA} peca={b(M.contratoPeca)} width={720} height={320}>
+			<Spot v={v} r={CONTRATO_LINHA} from={at(M.contrato, 0.2)} to={at(M.contrato, 0.8)} z={70} />
+			<Peca v={v} r={CONTRATO_LINHA} peca={at(M.contrato, 0.8)} width={720} height={320}>
 				<CardHeader icon={<Icon d={D.file} bg={RED} />} title="Contrato" chip="alerta alto" />
 				<div style={{fontFamily: DISPLAY, fontSize: 52, fontWeight: 700, color: INK, marginTop: 18, lineHeight: 1}}>Contrato vencido</div>
 				<div style={{marginTop: 18, display: 'grid', gap: 2}}>
@@ -528,7 +603,7 @@ const AtoFichas: React.FC = () => {
 	const inn = ramp(f, C, C + 14, OUT);
 	const out = ramp(f, R - 2, R + 8, EASE);
 	const settle = ramp(f, b(M.copiaChega) - 6, b(M.copiaChega) + 14, OUT);
-	const title = spr(f, M.copiaTitulo, {damping: 16, stiffness: 140, mass: 0.8});
+	const title = spr(f, M.copiaTitulo - 1.3, {damping: 16, stiffness: 140, mass: 0.8});
 	const fast = Math.max(0, 1 - out * 2.2);
 	const push = lerp(1, PUSH, ramp(f, C, R, (x) => x));
 	return (
@@ -587,7 +662,7 @@ const AtoLado: React.FC = () => {
 		return ramp(f, first - 4, first + 14, OUT);
 	});
 	return (
-		<AbsoluteFill style={{opacity: 1 - out, filter: out > 0.01 ? `blur(${out * 8}px)` : undefined}}>
+		<AbsoluteFill style={{transform: `translateY(${-out * out * 760}px)`}}>
 			<div style={{position: 'absolute', inset: 0, filter: fade < 0.99 ? `blur(${(1 - fade) * 10}px)` : undefined}}>
 				<Plano src={tela('comparacao')} v={v} opacity={fade} />
 			</div>
@@ -619,23 +694,31 @@ const DISP_BTN: Rect = {x: 2028, y: 1060, w: 320, h: 86};
 const REV_BTN: Rect = {x: 1995, y: 517, w: 218, h: 84};
 const AtoDispensar: React.FC = () => {
 	const f = useCurrentFrame();
-	const v: View = {fx: 2280, fy: 860, s: lerp(1.12, 1.18, ramp(f, b(M.dispensar), b(M.revalidar), (x) => x))};
+	const vCam = trilho([
+		// A cena entra já perto do botão: entrada e viagem de câmera ao mesmo tempo competem.
+		[b(M.dispensar), {fx: 2270, fy: 1030, s: 1.0}],
+		[b(M.dispClick) - 8, {fx: 2200, fy: 1070, s: 1.1}],
+		[b(M.dispClick) + 4, {fx: 2200, fy: 1074, s: 1.12}],
+		[b(M.dispJust) + 14, {fx: 2290, fy: 900, s: 1.0}],
+		[b(M.revalidar), {fx: 2300, fy: 880, s: 1.05}],
+	]);
+	const v = vCam(f);
 	const btn = planoToScreen(v, DISP_BTN.x + DISP_BTN.w / 2, DISP_BTN.y + DISP_BTN.h / 2);
 	const modal = spr(f, M.dispJust - 0.3) * (1 - ramp(f, b(M.dispOk), at(M.dispOk, 0.4), EASE));
 	const ok = spr(f, M.dispOk + 0.2);
 	const text = 'Conferido com o técnico na visita de retorno.';
 	return (
-		<Stage from={b(M.dispensar)} to={b(M.revalidar)} src={tela('dossie-copia')} v={v} enter="down" base={0.35} blur={0.6 + Math.max(modal, ok * 0.6)} orbit={[6, -10, 3, 6]} layers={<Layers src={tela('dossie-copia')} v={v} layers={gaveta(b(M.dispensar), GAVETA_COPIA)} />}>
+		<Stage from={b(M.dispensar)} to={b(M.revalidar)} src={tela('dossie-copia')} v={v} camAt={vCam} enter="down" base={0.35} blur={0.6 + Math.max(modal, ok * 0.6)} orbit={[6, -10, 3, 6]} layers={<Layers src={tela('dossie-copia')} v={v} layers={gaveta(b(M.dispensar), GAVETA_COPIA)} />}>
 			<Spot v={v} r={DISP_BTN} from={at(M.dispensar, 0.2)} to={b(M.dispJust)} z={70} />
 			<Cursor x={btn.x} y={btn.y} click={b(M.dispClick)} />
 			{modal > 0.01 && (
 				<>
-					<div style={{position: 'absolute', inset: 0, background: PAPER, opacity: modal * 0.5}} />
+					<div style={{position: 'absolute', inset: -300, background: PAPER, opacity: modal * 0.6}} />
 					<Card x={960 - 380} y={250} w={760} k={modal}>
 						<CardHeader icon={<Icon d={D.copy} bg={RED} />} title="Dispensar alerta" chip="cópia e cola" />
 						<div style={{fontFamily: UI, fontSize: 22, color: INK_SOFT, marginTop: 22}}>Justificativa</div>
 						<div style={{marginTop: 10, minHeight: 96, padding: '14px 18px', borderRadius: 12, border: `2px solid ${ORANGE}`, fontFamily: UI, fontSize: 28, color: INK, lineHeight: 1.35}}>
-							{typed(text, f, at(M.dispJust, 0.2), at(M.dispJust, 1.6))}
+							{typed(text, f, at(M.dispJust, 0.1), at(M.dispJust, 1.1))}
 							<span style={{opacity: Math.floor(f / 8) % 2 ? 1 : 0, color: ORANGE}}>|</span>
 						</div>
 						<div style={{display: 'flex', justifyContent: 'flex-end', marginTop: 20}}>
@@ -644,8 +727,9 @@ const AtoDispensar: React.FC = () => {
 					</Card>
 				</>
 			)}
+			{ok > 0.01 && <div style={{position: 'absolute', inset: -300, background: PAPER, opacity: Math.min(1, ok) * 0.86 * (1 - modal)}} />}
 			{ok > 0.01 && (
-				<Card x={960 - 300} y={380} w={600} k={ok} style={{display: 'flex', alignItems: 'center', gap: 16}}>
+				<Card x={960 - 300} y={380} w={600} k={ok} style={{display: 'flex', alignItems: 'center', gap: 16, transform: 'translateZ(160px)'}}>
 					<Icon d={D.check} bg={GREEN} />
 					<div>
 						<div style={{fontFamily: UI, fontSize: 28, fontWeight: 600, color: INK}}>Alerta dispensado</div>
@@ -658,15 +742,23 @@ const AtoDispensar: React.FC = () => {
 };
 const AtoRevalidar: React.FC = () => {
 	const f = useCurrentFrame();
-	const v: View = {fx: 2240, fy: 640, s: lerp(1.25, 1.3, ramp(f, b(M.revalidar), b(M.antes), (x) => x))};
+	const vCam = trilho([
+		[b(M.revalidar), {fx: 2190, fy: 610, s: 1.04}],
+		[b(M.revClick) - 8, {fx: 2130, fy: 580, s: 1.12}],
+		[b(M.revClick) + 4, {fx: 2130, fy: 582, s: 1.14}],
+		[b(M.revClick) + 30, {fx: 2240, fy: 640, s: 1.02}],
+		[b(M.antes), {fx: 2255, fy: 650, s: 1.07}],
+	]);
+	const v = vCam(f);
 	const btn = planoToScreen(v, REV_BTN.x + REV_BTN.w / 2, REV_BTN.y + REV_BTN.h / 2);
 	const reading = ramp(f, at(M.revClick, 0.15), at(M.revClick, 0.4)) * (1 - ramp(f, b(M.revOk), at(M.revOk, 0.3)));
 	const ok = spr(f, M.revOk);
 	const spin = (f * 12) % 360;
 	return (
-		<Stage from={b(M.revalidar)} to={b(M.antes)} src={tela('dossie-contrato')} v={v} enter="right" base={0.35} blur={0.6 + Math.max(reading, ok) * 0.5} orbit={[4, 8, 8, -8]} layers={<Layers src={tela('dossie-contrato')} v={v} layers={gaveta(b(M.revalidar), GAVETA_CONTRATO)} />}>
+		<Stage from={b(M.revalidar)} to={b(M.antes)} src={tela('dossie-contrato')} v={v} camAt={vCam} enter="right" base={0.35} blur={0.6 + Math.max(reading, ok) * 0.5} orbit={[4, 8, 8, -8]} layers={<Layers src={tela('dossie-contrato')} v={v} layers={gaveta(b(M.revalidar), GAVETA_CONTRATO)} />}>
 			<Spot v={v} r={REV_BTN} from={at(M.revalidar, 0.2)} to={at(M.revClick, 0.3)} z={20} />
 			<Cursor x={btn.x} y={btn.y} click={b(M.revClick)} />
+			{Math.max(reading, ok) > 0.01 && <div style={{position: 'absolute', inset: -300, background: PAPER, opacity: Math.min(1, Math.max(reading, ok)) * 0.86}} />}
 			{reading > 0.01 && (
 				<Card x={960 - 280} y={400} w={560} k={reading} style={{display: 'flex', alignItems: 'center', gap: 18}}>
 					<svg width="44" height="44" viewBox="0 0 44 44" style={{transform: `rotate(${spin}deg)`}}>
@@ -703,7 +795,7 @@ const AtoAntes: React.FC = () => {
 	const rat = spr(f, M.rima + 0.2, {damping: 18, stiffness: 110, mass: 0.9});
 	const ring = ramp(f, b(M.rimaOk), at(M.rimaOk, 0.4));
 	return (
-		<Stage from={b(M.antes)} to={b(M.cms)}>
+		<Stage from={b(M.antes)} to={b(M.cms)} orbit={[5, -9, 2, 8]} trilho={[[b(M.antes), {fx: 960, fy: 400, s: 1.2}], [at(M.antes, 1.2), {fx: 860, fy: 400, s: 1.36}], [at(M.antes, 3.0), {fx: 1060, fy: 410, s: 1.36}], [b(M.previa) - 4, {fx: 1050, fy: 420, s: 1.38}], [at(M.previa, 0.8), {fx: 900, fy: 520, s: 1.6}], [b(M.numeros) - 4, {fx: 1060, fy: 530, s: 1.66}], [at(M.numeros, 0.7), {fx: 960, fy: 430, s: 1.5}], [at(M.numeros, 3.2), {fx: 960, fy: 530, s: 1.38}], [b(M.rima) - 2, {fx: 990, fy: 540, s: 1.42}], [at(M.rima, 0.9), {fx: 960, fy: 440, s: 1.25}], [b(M.rimaOk) - 4, {fx: 980, fy: 450, s: 1.3}], [at(M.rimaOk, 0.9), {fx: RAT_CX + 460, fy: RAT_CY + 320, s: 1.56}], [b(M.cms), {fx: RAT_CX + 440, fy: RAT_CY + 320, s: 1.62}]]}>
 			{panel > 0.01 && (
 				<Card x={960 - 460} y={250} w={920} k={panel}>
 					<CardHeader icon={<Icon d={D.clock} bg={ORANGE} />} title="Validar atendimentos existentes" />
@@ -731,7 +823,7 @@ const AtoAntes: React.FC = () => {
 						const hit = on ? back(ramp(f, at(M.numeros, 0.8) + (i / 209) * s(2.4), at(M.numeros, 0.8) + (i / 209) * s(2.4) + 10)) : 0;
 						return <div key={i} style={{position: 'absolute', left: 620 + c * 36, top: 230 + r * 36, width: 22, height: 22, borderRadius: 11, background: on ? ORANGE : '#e9dcd2', transform: `scale(${pk * (0.7 + 0.3 * hit)})`, boxShadow: on ? `0 0 ${10 * (1 - Math.min(1, hit))}px rgba(229,96,31,0.8)` : undefined}} />;
 					})}
-					<div style={{position: 'absolute', left: 0, right: 0, top: 650, display: 'flex', justifyContent: 'center', gap: 70}}>
+					<div style={{position: 'absolute', left: 0, right: 0, top: 650, display: 'flex', justifyContent: 'center', gap: 70, transform: 'translateZ(90px)'}}>
 						<div style={{textAlign: 'center'}}>
 							<Odo value={done} digits={3} size={92} sep={false} />
 							<div style={{fontFamily: UI, fontSize: 26, color: INK_SOFT}}>validados em agosto e setembro</div>
@@ -747,9 +839,11 @@ const AtoAntes: React.FC = () => {
 				<>
 					<RatFicha x={RAT_CX} y={RAT_CY} scale={lerp(0.9, 1, rat)} opacity={rat} produtor="alerta" k={ring} />
 					<div style={{position: 'absolute', left: RAT_CX + RZ.produtor.x - 12, top: RAT_CY + RZ.produtor.y - 12, width: RZ.produtor.w + 24, height: RZ.produtor.h + 24, borderRadius: 16, border: `3px solid ${ORANGE}`, opacity: ring, transform: `scale(${lerp(1.12, 1, ring)})`}} />
-					<div style={{position: 'absolute', left: RAT_CX + RZ.produtor.x, top: RAT_CY + RZ.produtor.y + RZ.produtor.h + 22, opacity: ring}}>
-						<Chip>alerta antes da JBS</Chip>
-					</div>
+					<Prof z={80} lag={3}>
+						<div style={{position: 'absolute', left: RAT_CX + RZ.produtor.x, top: RAT_CY + RZ.produtor.y + RZ.produtor.h + 22, opacity: ring}}>
+							<Chip>alerta antes da JBS</Chip>
+						</div>
+					</Prof>
 				</>
 			)}
 		</Stage>
@@ -757,54 +851,84 @@ const AtoAntes: React.FC = () => {
 };
 
 // ============ 11. No CMS, sem deploy ============
-const HeroChip: React.FC<{text: string; k: number; y?: number}> = ({text, k, y = 120}) => (
-	<div style={{position: 'absolute', left: 0, right: 0, top: y, display: 'flex', justifyContent: 'center', opacity: k, transform: `translateY(${(1 - k) * 16}px)`}}>
-		<div style={{padding: '16px 30px', borderRadius: 999, background: CARD, boxShadow: SHADOW, fontFamily: DISPLAY, fontSize: 40, fontWeight: 600, color: INK}}>{text}</div>
-	</div>
-);
-const CmsShot: React.FC<{src: string; from: number; to: number; v: View; children?: React.ReactNode; blur?: number; layers?: Layer[]; enter?: Dir; exit?: Dir; orbit?: [number, number, number, number]}> = ({src, from, to, v, children, blur = 0, layers, enter, exit, orbit = [10, -12, 4, 8]}) => (
-	<Stage from={from} to={to} src={tela(src)} v={v} w={2880} h={1800} blur={layers ? 0.7 + blur : blur} base={layers ? 0.3 : 1} enter={enter} exit={exit} orbit={orbit} layers={layers && <Layers src={tela(src)} w={2880} h={1800} v={v} layers={layers} />}>
+type Shot = {src: string; from: number; to: number; v: View; camAt?: (f: number) => View; children?: React.ReactNode; blur?: number; base?: number; layers?: Layer[]; enter?: Dir; exit?: Dir; cutIn?: boolean; orbit?: [number, number, number, number]; orbitSpan?: [number, number]};
+const CmsShot: React.FC<Shot> = ({src, from, to, v, camAt, children, blur = 0, base, layers, enter, exit, cutIn, orbit = [10, -12, 4, 8], orbitSpan}) => (
+	<Stage from={from} to={to} src={tela(src)} v={v} camAt={camAt} w={2880} h={1800} blur={layers ? 0.7 + blur : blur} base={base ?? (layers ? 0.3 : 1)} enter={enter} exit={exit} cutIn={cutIn} orbit={orbit} orbitSpan={orbitSpan} layers={layers && <Layers src={tela(src)} w={2880} h={1800} v={v} layers={layers} />}>
 		{children}
 	</Stage>
 );
+/** Remendo sobre a captura (um estado que só existe depois de gravar), na profundidade `z` da camada que cobre. */
+const Remendo: React.FC<{v: View; r: Rect; z: number; k: number; bg?: string; children?: React.ReactNode}> = ({v, r, z, k, bg = '#fff', children}) => {
+	const tl = planoToScreen(v, r.x, r.y);
+	if (k <= 0.01) return null;
+	return (
+		<div style={{position: 'absolute', inset: 0, transform: `translateZ(${z + 2}px)`, opacity: k}}>
+			<div style={{position: 'absolute', left: tl.x, top: tl.y, width: r.w * v.s, height: r.h * v.s, background: bg, display: 'flex', alignItems: 'center'}}>{children}</div>
+		</div>
+	);
+};
 const REGRA_CHIPS: Rect = {x: 950, y: 600, w: 470, h: 136};
+// O modal do programa é um só: uma câmera percorre as abas do começo ao fim (escala até ~1,08, porque acima de 1 a
+// captura de 2880 px borra). A borda esquerda do quadro cai sempre fora do menu lateral ou no vão antes do miolo.
+const MODAL_CAM = trilho([
+	[b(M.liberar), {fx: 1440, fy: 820, s: 0.8}],
+	[at(M.liberar, 2.2), {fx: 1440, fy: 850, s: 0.88}],
+	[b(M.liberarClick) - 6, {fx: 1440, fy: 910, s: 1.06}],
+	[b(M.modo) - 10, {fx: 1440, fy: 905, s: 1.04}],
+	[b(M.modo) + 24, {fx: 1760, fy: 1030, s: 0.98}],
+	[b(M.ativo) + 16, {fx: 1740, fy: 1040, s: 1.0}],
+	[b(M.verif) - 8, {fx: 1740, fy: 1040, s: 1.0}],
+	[b(M.verif) + 26, {fx: 1760, fy: 920, s: 0.98}],
+	[at(M.verif, 1.8) + 14, {fx: 1740, fy: 830, s: 1.0}],
+	[b(M.regua) - 8, {fx: 1740, fy: 840, s: 1.0}],
+	[b(M.reguaPeca) - 4, {fx: 1721, fy: 720, s: 1.02}],
+	[b(M.reguaPeca) + 24, {fx: 1780, fy: 800, s: 0.96}],
+	[b(M.assRef) - 8, {fx: 1770, fy: 810, s: 0.97}],
+	[at(M.assRef, 1.2), {fx: 1790, fy: 1300, s: 0.95}],
+	[at(M.assRef, 1.8) + 14, {fx: 1703, fy: 980, s: 1.04}],
+	[b(M.tecnico) - 6, {fx: 1694, fy: 970, s: 1.05}],
+	[b(M.dest) + 6, {fx: 1760, fy: 1140, s: 0.98}],
+	[at(M.dest, 0.2) + 18, {fx: 1686, fy: 1150, s: 1.06}],
+	[at(M.dest, 1.3) + 14, {fx: 1669, fy: 1100, s: 1.08}],
+	[b(M.ligar) - 8, {fx: 1669, fy: 1100, s: 1.08}],
+	[b(M.ligar) + 8, {fx: 1740, fy: 660, s: 1.0}],
+	[b(M.ligarClick) - 6, {fx: 1686, fy: 600, s: 1.06}],
+	[b(M.ligarClick) + 5, {fx: 1686, fy: 602, s: 1.07}],
+	[at(M.ligarClick, 1.2), {fx: 1440, fy: 700, s: 0.8}],
+	[b(M.ciclo), {fx: 1440, fy: 700, s: 0.83}],
+]);
+const MODAL_SPAN: [number, number] = [b(M.liberar), b(M.ciclo)];
 const AtoCms: React.FC = () => {
 	const f = useCurrentFrame();
-	const vProg = viewAt(f, [
-		[b(M.cms), {fx: 1500, fy: 980, s: 0.7}],
-		[b(M.liberar), {fx: 1400, fy: 1080, s: 0.78}],
-	]);
-	const vLib: View = {fx: 1440, fy: 820, s: lerp(1.0, 1.06, ramp(f, b(M.liberar), b(M.modo), (x) => x))};
-	const libBtn = planoToScreen(vLib, 1122 + 316, 861 + 42);
-	const vModo: View = {fx: 1660, fy: 980, s: lerp(0.95, 1.0, ramp(f, b(M.modo), b(M.verif), (x) => x))};
-	const vVer: View = {fx: 1350, fy: 950, s: lerp(0.95, 1.0, ramp(f, b(M.verif), b(M.regua), (x) => x))};
-	const vReg: View = {fx: 1640, fy: 820, s: lerp(0.92, 0.98, ramp(f, b(M.regua), b(M.assRef), (x) => x))};
+	const progCam = trilho([[b(M.cms), {fx: 1500, fy: 980, s: 0.7}], [at(M.cms, 1.4), {fx: 1620, fy: 1150, s: 0.92}], [b(M.liberar), {fx: 1650, fy: 1160, s: 0.96}]]);
+	const tecCam = trilho([[b(M.tecnico), {fx: 1435, fy: 900, s: 0.86}], [at(M.tecnico, 1.4), {fx: 1300, fy: 760, s: 1.0}], [b(M.dest), {fx: 1310, fy: 760, s: 1.03}]]);
+	const vProg = progCam(f);
+	const vTec = tecCam(f);
+	const m = MODAL_CAM(f);
+	const libBtn = planoToScreen(m, 1122 + 316, 861 + 42);
 	const mark = lerp(0.55, 0.8, ramp(f, at(M.reguaPeca, 0.3), at(M.reguaPeca, 1.2), EASE));
-	const vAss: View = {fx: 1660, fy: 1150, s: lerp(0.86, 0.92, ramp(f, b(M.assRef), b(M.tecnico), (x) => x))};
-	const vTec: View = {fx: 1435, fy: 940, s: lerp(0.92, 0.97, ramp(f, b(M.tecnico), b(M.dest), (x) => x))};
-	const vDest: View = {fx: 1300, fy: 1120, s: lerp(1.0, 1.05, ramp(f, b(M.dest), b(M.ligar), (x) => x))};
+	const aba = {v: m, camAt: MODAL_CAM, orbitSpan: MODAL_SPAN, cutIn: true, exit: 'cut' as Dir};
 	return (
 		<>
-			<CmsShot src="cms-programas" from={b(M.cms)} to={b(M.liberar)} v={vProg} enter="zoom" exit="up" layers={[{r: {x: 0, y: 0, w: 700, h: 1800}, z: 0, at: b(M.cms), from: {x: -400, y: 0, z: -100, rx: 0}}, {r: {x: 700, y: 0, w: 2180, h: 170}, z: 20, at: b(M.cms) + 4, from: {y: -150, z: -200, rx: -20}}, {r: {x: 700, y: 360, w: 2180, h: 1100}, z: 30, at: b(M.cms) + 8}, {r: {x: 690, y: 1132, w: 1900, h: 76}, z: 120, at: at(M.cms, 0.6), from: {y: 40, z: -100, rx: 60}}]}>
+			{/* A lista de programas entra empurrando a cena anterior e mergulha na linha do programa. */}
+			<CmsShot src="cms-programas" from={b(M.cms)} to={b(M.liberar)} v={vProg} camAt={progCam} enter="right" exit="dive" layers={[{r: {x: 0, y: 0, w: 700, h: 1800}, z: 0, at: b(M.cms), from: {x: -400, y: 0, z: -100, rx: 0}}, {r: {x: 700, y: 0, w: 2180, h: 170}, z: 20, at: b(M.cms) + 4, from: {y: -150, z: -200, rx: -20}}, {r: {x: 700, y: 360, w: 2180, h: 1100}, z: 30, at: b(M.cms) + 8}, {r: {x: 690, y: 1132, w: 1900, h: 76}, z: 120, at: at(M.cms, 0.6), from: {y: 40, z: -100, rx: 60}}]}>
 				<Spot v={vProg} r={{x: 690, y: 1132, w: 1900, h: 76}} from={at(M.cms, 0.6)} z={120} />
-				<HeroChip text="Tudo pelo CMS · sem deploy" k={spr(f, M.semDeploy)} />
 			</CmsShot>
-			<CmsShot src="cms-liberar" from={b(M.liberar)} to={b(M.modo)} v={vLib} enter="down" layers={[...cmsLayers(b(M.liberar), false), {r: {x: 1100, y: 840, w: 680, h: 125}, z: 130, at: at(M.liberar, 2.4), from: {y: 60, z: -150, rx: 50}}]}>
-				<HeroChip text="Nasce desligada · só um master libera" k={spr(f, M.liberar + 1.2)} />
-				<Spot v={vLib} r={{x: 1122, y: 861, w: 633, h: 84}} from={at(M.liberar, 2.6)} z={130} />
+			{/* O modal abre uma vez; daqui em diante só o miolo troca, e a câmera é uma só. */}
+			<CmsShot src="cms-liberar" from={b(M.liberar)} to={b(M.modo)} v={m} camAt={MODAL_CAM} orbitSpan={MODAL_SPAN} enter="zoom" exit="cut" layers={[...cmsLayers(b(M.liberar), false), {r: {x: 1100, y: 840, w: 680, h: 125}, z: 130, at: at(M.liberar, 2.4), from: {y: 60, z: -150, rx: 50}}]}>
 				<Cursor x={libBtn.x} y={libBtn.y} click={b(M.liberarClick)} />
 			</CmsShot>
-			<CmsShot src="cms-funcionamento" from={b(M.modo)} to={b(M.verif)} v={vModo} enter="right" layers={cmsLayers(b(M.modo), true, [{x: 819, y: 972, w: 828, h: 132}, {x: 1677, y: 972, w: 831, h: 132}])}>
-				<Spot v={vModo} r={{x: 819, y: 972, w: 828, h: 132}} from={b(M.silencioso)} to={b(M.ativo)} z={110} />
-				<Spot v={vModo} r={{x: 1677, y: 972, w: 831, h: 132}} from={b(M.ativo)} z={110} />
+			<CmsShot src="cms-funcionamento" from={b(M.modo)} to={b(M.verif)} {...aba} layers={cmsLayers(b(M.modo), true, [{x: 819, y: 972, w: 828, h: 132}, {x: 1677, y: 972, w: 831, h: 132}], true)}>
+				<Spot v={m} r={{x: 819, y: 972, w: 828, h: 132}} from={b(M.silencioso)} to={b(M.ativo)} z={110} />
+				<Spot v={m} r={{x: 1677, y: 972, w: 831, h: 132}} from={b(M.ativo)} z={110} />
 			</CmsShot>
-			<CmsShot src="cms-verificacoes-copia" from={b(M.verif)} to={b(M.regua)} v={vVer} enter="right" orbit={[12, 10, 4, -8]} layers={[...cmsLayers(b(M.verif), false), {r: {x: 820, y: 470, w: 1720, h: 270}, z: 70, at: at(M.verif, 0.5), from: {y: 80, z: -300, rx: 40}}, {r: {x: 820, y: 740, w: 1720, h: 500}, z: 100, at: at(M.verif, 0.7), from: {y: 80, z: -300, rx: 40}}, {r: {x: 820, y: 1240, w: 1720, h: 180}, z: 70, at: at(M.verif, 0.9), from: {y: 80, z: -300, rx: 40}}]}>
-				<Spot v={vVer} r={{x: 1600, y: 520, w: 300, h: 860}} from={at(M.verif, 0.6)} z={100} />
-				<Spot v={vVer} r={{x: 1930, y: 520, w: 360, h: 860}} from={at(M.verif, 1.8)} z={100} />
+			<CmsShot src="cms-verificacoes-copia" from={b(M.verif)} to={b(M.regua)} {...aba} layers={cmsLayers(b(M.verif), false, [], true)}>
+				{/* Gravidade (a coluna) e regras (os botões "Ajustar regras"), medidos na captura. */}
+				<Spot v={m} r={{x: 1600, y: 520, w: 300, h: 860}} from={at(M.verif, 0.6)} to={at(M.verif, 1.8)} z={35} />
+				<Spot v={m} r={{x: 2160, y: 525, w: 318, h: 350}} from={at(M.verif, 1.8)} z={35} />
 			</CmsShot>
-			<CmsShot src="cms-regras" from={b(M.regua)} to={b(M.assRef)} v={vReg} enter="zoom" blur={liftOf(f, b(M.reguaPeca))} layers={cmsLayers(b(M.regua), false, [{x: 950, y: 600, w: 470, h: 136}])}>
-				<Spot v={vReg} r={REGRA_CHIPS} from={at(M.regua, 0.3)} to={b(M.reguaPeca)} z={110} />
-				<Peca v={vReg} r={REGRA_CHIPS} peca={b(M.reguaPeca)} width={640} height={300}>
+			<CmsShot src="cms-regras" from={b(M.regua)} to={b(M.assRef)} {...aba} blur={liftOf(f, b(M.reguaPeca))} layers={cmsLayers(b(M.regua), false, [REGRA_CHIPS], true)}>
+				<Peca v={m} r={REGRA_CHIPS} peca={b(M.reguaPeca)} width={640} height={300}>
 					<CardHeader icon={<Icon d={D.rule} bg={ORANGE} />} title="Cópia e cola · regras" />
 					<div style={{display: 'flex', alignItems: 'baseline', gap: 16, marginTop: 18}}>
 						<span style={{fontFamily: DISPLAY, fontSize: 92, fontWeight: 700, color: INK, fontVariantNumeric: 'tabular-nums', lineHeight: 0.9}}>{Math.round(mark * 100)}%</span>
@@ -817,16 +941,22 @@ const AtoCms: React.FC = () => {
 					<Ruler fill={0} mark={mark} label="limiar" />
 				</Peca>
 			</CmsShot>
-			<CmsShot src="cms-assinaturas" from={b(M.assRef)} to={b(M.tecnico)} v={vAss} enter="down" orbit={[14, -10, 6, 10]} layers={[...cmsLayers(b(M.assRef), true), ...[0, 1, 2, 3, 4, 5].map((i) => ({r: {x: 819 + (i % 3) * 560, y: 1155 + Math.floor(i / 3) * 170, w: 550, h: 160}, z: 90 + (i % 3) * 20, at: at(M.assRef, 0.5) + i * 4, from: {y: 120, z: -400, rx: 60, x: ((i % 3) - 1) * 80}}))]}>
-				<Spot v={vAss} r={{x: 819, y: 1155, w: 1677, h: 333}} from={at(M.assRef, 0.4)} z={110} />
-				<Spot v={vAss} r={{x: 2061, y: 798, w: 411, h: 63}} from={at(M.assRef, 1.8)} z={35} />
+			{/* Fica por baixo enquanto o modal do técnico abre por cima. */}
+			<CmsShot src="cms-assinaturas" from={b(M.assRef)} to={b(M.tecnico) + 20} {...aba} layers={[...cmsLayers(b(M.assRef), true, [], true), ...[0, 1, 2, 3, 4, 5].map((i) => ({r: {x: 819 + (i % 3) * 560, y: 1155 + Math.floor(i / 3) * 170, w: 550, h: 160}, z: 90 + (i % 3) * 20, at: at(M.assRef, 0.5) + i * 4, from: {y: 120, z: -400, rx: 60, x: ((i % 3) - 1) * 80}}))]}>
+				<Spot v={m} r={{x: 2061, y: 798, w: 411, h: 63}} from={at(M.assRef, 1.8)} z={35} />
 			</CmsShot>
-			<CmsShot src="cms-modal-tecnico" from={b(M.tecnico)} to={b(M.dest)} v={vTec} enter="zoom" orbit={[8, 12, 4, -8]} layers={[{r: {x: 483, y: 189, w: 1914, h: 160}, z: 60, at: b(M.tecnico) + 2, from: {y: -100, z: -300, rx: -30}}, ...[0, 1, 2, 3, 4].map((i) => ({r: {x: 534 + (i % 3) * 556, y: 372 + Math.floor(i / 3) * 600, w: 540, h: 580}, z: 80 + (i % 3) * 25, at: b(M.tecnico) + 8 + i * 4, from: {y: 160, z: -500, rx: 50, ry: ((i % 3) - 1) * 20}}))]}>
-				<Spot v={vTec} r={{x: 534, y: 372, w: 552, h: 570}} from={at(M.tecnico, 0.4)} z={80} />
+			<CmsShot src="cms-email" from={b(M.dest)} to={b(M.ligar)} {...aba} layers={cmsLayers(b(M.dest), true, [], true)}>
+				{/* O horário configurado no ambiente de captura era 18h; o padrão do produto, e o que a fala diz, é 7h. */}
+				<Remendo v={m} r={{x: 1194, y: 1044, w: 76, h: 52}} z={35} k={ramp(f, b(M.dest) + 9, b(M.dest) + 13)}>
+					<span style={{fontFamily: ROBOTO, fontSize: 31 * m.s, color: '#1f2937', paddingLeft: 8 * m.s}}>07h</span>
+				</Remendo>
+				<Remendo v={m} r={{x: 806, y: 1336, w: 1750, h: 120}} z={35} k={ramp(f, b(M.dest) + 9, b(M.dest) + 13)} />
+				<Spot v={m} r={{x: 833, y: 1131, w: 488, h: 60}} from={at(M.dest, 0.2)} to={at(M.dest, 1.3)} z={35} />
+				<Spot v={m} r={{x: 1175, y: 1021, w: 221, h: 80}} from={at(M.dest, 1.3)} z={35} />
 			</CmsShot>
-			<CmsShot src="cms-email" from={b(M.dest)} to={b(M.ligar)} v={vDest} enter="right" layers={cmsLayers(b(M.dest), true, [{x: 820, y: 1000, w: 1740, h: 220}])}>
-				<Spot v={vDest} r={{x: 833, y: 1131, w: 488, h: 60}} from={at(M.dest, 0.2)} to={at(M.dest, 1.3)} z={110} />
-				<Spot v={vDest} r={{x: 1175, y: 1021, w: 221, h: 80}} from={at(M.dest, 1.3)} z={110} />
+			{/* Por último no JSX para ficar por cima: abre sobre a aba de assinaturas e fecha revelando a de e-mail. */}
+			<CmsShot src="cms-modal-tecnico" from={b(M.tecnico)} to={b(M.dest)} v={vTec} camAt={tecCam} enter="zoom" exit="zoom" base={0.92} orbit={[8, 12, 4, -8]} layers={[{r: {x: 483, y: 189, w: 1914, h: 165}, z: 60, at: b(M.tecnico) + 2, from: {y: -100, z: -300, rx: -30}}, ...[0, 1, 2, 3, 4].map((i) => ({r: {x: 522 + (i % 3) * 617, y: 366 + Math.floor(i / 3) * 628, w: 589, h: 602}, z: 80 + (i % 3) * 25, at: b(M.tecnico) + 6 + i * 2, from: {y: 160, z: -500, rx: 50, ry: ((i % 3) - 1) * 20}}))]}>
+				<Spot v={vTec} r={{x: 522, y: 366, w: 589, h: 602}} from={at(M.tecnico, 0.4)} z={80} />
 			</CmsShot>
 		</>
 	);
@@ -835,20 +965,21 @@ const AtoCms: React.FC = () => {
 // ============ 12. Ligou; o ciclo ============
 const AtoLigar: React.FC = () => {
 	const f = useCurrentFrame();
-	const v: View = {fx: 1470, fy: 640, s: lerp(0.86, 0.9, ramp(f, b(M.ligar), b(M.ciclo), (x) => x))};
+	const v = MODAL_CAM(f);
 	const btn = planoToScreen(v, 2143 + 157, 505 + 41);
-	const pill = planoToScreen(v, 508, 609);
 	const on = spr(f, M.ligarClick + 0.25);
 	return (
-		<CmsShot src="cms-verificacoes" from={b(M.ligar)} to={b(M.ciclo)} v={v} enter="down" exit="zoom" layers={cmsLayers(b(M.ligar), true)}>
+		<CmsShot src="cms-verificacoes" from={b(M.ligar)} to={b(M.ciclo)} v={v} camAt={MODAL_CAM} orbitSpan={MODAL_SPAN} cutIn exit="zoom" layers={cmsLayers(b(M.ligar), true, [], true)}>
 			<Spot v={v} r={{x: 2143, y: 505, w: 315, h: 82}} from={at(M.ligar, 0.2)} to={b(M.ligarClick)} z={50} />
 			<Cursor x={btn.x} y={btn.y} click={b(M.ligarClick)} />
-			{on > 0.01 && (
-				<div style={{position: 'absolute', left: pill.x - 6, top: pill.y - 6, opacity: on, transform: `scale(${lerp(1.3, 1, on)})`, transformOrigin: '0 50%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 18px', borderRadius: 999, background: '#dcfce7', boxShadow: '0 0 0 3px #86efac', fontFamily: UI, fontSize: 26, fontWeight: 700, color: '#15803d'}}>
-					<Svg d={D.check} color="#15803d" size={24} width={3} />
+			{/* Depois do clique: o selo "Desligada" vira "Ligada" e o "ainda não ligada" some (medidos na captura). */}
+			<Remendo v={v} r={{x: 500, y: 603, w: 204, h: 72}} z={50} k={on}>
+				<div style={{marginLeft: 8 * v.s, transform: `scale(${lerp(1.25, 1, on)})`, transformOrigin: '0 50%', display: 'flex', alignItems: 'center', gap: 9 * v.s, padding: `${9 * v.s}px ${20 * v.s}px`, borderRadius: 999, background: '#dcfce7', boxShadow: '0 0 0 2px #86efac', fontFamily: ROBOTO, fontSize: 29 * v.s, fontWeight: 700, color: '#15803d'}}>
+					<Svg d={D.check} color="#15803d" size={26 * v.s} width={3} />
 					Ligada
 				</div>
-			)}
+			</Remendo>
+			<Remendo v={v} r={{x: 924, y: 606, w: 216, h: 64}} z={50} k={on} />
 		</CmsShot>
 	);
 };
@@ -897,7 +1028,7 @@ const AtoCiclo: React.FC = () => {
 		}
 	});
 	return (
-		<Stage from={b(M.ciclo)} to={b(M.final)} enter="zoom" exit="fade">
+		<Stage from={b(M.ciclo)} to={b(M.final)} enter="zoom" exit="fade" orbit={[10, -12, 4, 10]} trilho={[[b(M.ciclo), {fx: 960, fy: 470, s: 1.5}], [b(M.cSync) + 26, {fx: 1060, fy: 360, s: 1.32}], [at(M.cDecide, 0.6), {fx: 960, fy: 470, s: 1.12}], [b(M.final), {fx: 960, fy: 470, s: 1.3}]]}>
 			<canvas ref={ref} width={1920} height={1080} style={{position: 'absolute', inset: 0}} />
 			<div style={{position: 'absolute', left: 0, right: 0, top: CY - 40, textAlign: 'center', opacity: spr(f, M.ciclo)}}>
 				<div style={{fontFamily: DISPLAY, fontSize: 56, fontWeight: 700, color: INK}}>7 verificações</div>
@@ -907,10 +1038,12 @@ const AtoCiclo: React.FC = () => {
 				const p = nodePos(i, Math.max(0, f - at(M.cDecide, 0.6)) * 0.0024);
 				const k = pop(f, b(M[n.m]), {damping: 10, stiffness: 180, mass: 0.7});
 				return (
-					<div key={n.label} style={{position: 'absolute', left: p.x - 150, top: p.y - 44, width: 300, height: 88, borderRadius: 20, background: CARD, boxShadow: SHADOW, display: 'flex', alignItems: 'center', gap: 14, padding: '0 22px', opacity: Math.min(1, k * 2), transform: `scale(${lerp(0.4, 1, k)}) rotate(${(1 - k) * -14}deg)`}}>
+					<Prof key={n.label} z={70 + (i % 2) * 60} lag={2 + (i % 2) * 2}>
+					<div style={{position: 'absolute', left: p.x - 150, top: p.y - 44, width: 300, height: 88, borderRadius: 20, background: CARD, boxShadow: SHADOW, display: 'flex', alignItems: 'center', gap: 14, padding: '0 22px', opacity: Math.min(1, k * 2), transformOrigin: '50% 100%', transform: `scale(${lerp(0.4, 1, k) * pouso(f, b(M[n.m]) + 7, 0.1).sx}, ${lerp(0.4, 1, k) * pouso(f, b(M[n.m]) + 7, 0.1).sy}) rotate(${(1 - k) * -14}deg)`}}>
 						<Icon d={n.d} bg={i === 4 ? INK : ORANGE} />
 						<span style={{fontFamily: UI, fontSize: 28, fontWeight: 600, color: INK, whiteSpace: 'nowrap'}}>{n.label}</span>
-					</div>
+						</div>
+					</Prof>
 				);
 			})}
 		</Stage>
@@ -936,8 +1069,17 @@ const AtoFinal: React.FC = () => {
 	const up = ramp(f, L - 6, L + 16, EASE);
 	const solid = ramp(f, L + 2, L + 16, EASE);
 	const end = ramp(f, at(M.logo, 3.4), at(M.logo, 4.2));
+	const camAt = trilho([
+		[F, {fx: 960, fy: 380, s: 1.34}],
+		[L - 10, {fx: 960, fy: 410, s: 1.16}],
+		[L + 22, {fx: 960, fy: 520, s: 1.0}],
+	]);
+	const calm = 1 - ramp(f, L, L + 22, EASE);
 	return (
-		<AbsoluteFill style={{opacity: 1 - end}}>
+		<AbsoluteFill style={{opacity: 1 - end, perspective: 1500}}>
+		<AbsoluteFill style={{transformStyle: 'preserve-3d', transform: `rotateX(${calm * (4 + Math.sin(f / 50) * 1.2)}deg) rotateY(${calm * lerp(-7, 5, ramp(f, F, L, (x) => x * x * (3 - 2 * x)))}deg)`}}>
+		<CamProvider at={camAt}>
+		<Enquadre v={camAt(f)}>
 			<Headline text="Validação de atendimentos." y={lerp(300, 230, up)} size={88} k={1} at={M.final + 0.2} />
 			<Headline text={<span style={{fontFamily: UI, fontWeight: 500, fontSize: 44, color: INK_SOFT}}>O RAT chega, e o erro <span style={{color: ORANGE, fontWeight: 600}}>não passa</span>.</span>} y={lerp(430, 360, up)} k={spr(f, M.final + 2.4)} />
 			<div style={{position: 'absolute', left: LOGO.x, top: LOGO.y, opacity: solid}}>
@@ -947,6 +1089,9 @@ const AtoFinal: React.FC = () => {
 			<div style={{position: 'absolute', left: 960 - 40, bottom: 60, opacity: ramp(f, L + 24, L + 44)}}>
 				<IbsLogo width={80} color={INK_SOFT} />
 			</div>
+		</Enquadre>
+		</CamProvider>
+		</AbsoluteFill>
 		</AbsoluteFill>
 	);
 };
@@ -957,7 +1102,8 @@ export const Video: React.FC = () => (
 		<AbsoluteFill style={{background: PAPER}}>
 			<Paper color={PAPER} />
 			<Dust />
-			<AtoNumero />
+				<AbsoluteFill style={{transform: 'translateY(-54px)'}}>
+				<AtoNumero />
 			<AtoRat />
 			<AtoTitulo />
 			<AtoComo />
@@ -974,7 +1120,8 @@ export const Video: React.FC = () => (
 			<AtoLigar />
 			<AtoCiclo />
 			<AtoFinal />
-			<Legendas itens={LEGENDAS} />
+				</AbsoluteFill>
+				<Legendas itens={LEGENDAS} />
 			<Grain amount={0.03} vignette={0} />
 		</AbsoluteFill>
 		</MotionProvider>

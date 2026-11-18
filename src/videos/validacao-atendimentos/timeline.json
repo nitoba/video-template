@@ -7,7 +7,7 @@
 	"scenes": [
 		{
 			"id": "validacao",
-			"duration": 5428
+			"duration": 5345
 		}
 	],
 	"transitions": [],
@@ -84,8 +84,8 @@
 		"cVerif": 213.783,
 		"cAvisa": 215.217,
 		"cDecide": 216.913,
-		"final": 225.0,
-		"logo": 230.348,
+		"final": 221.391,
+		"logo": 226.739,
 		"escreve": 100.19300000000001,
 		"copiaChega": 102.522
 	}

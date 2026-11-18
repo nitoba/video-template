@@ -25,9 +25,10 @@ visual sai da marca e do nicho do vídeo, nunca da estética de outra marca.
    última hora costumam ser o que a pessoa quer ver.
 2. Ache o conflito nos dados reais (consultas só de leitura). Números do vídeo vêm do banco, com data.
 3. Escreva `tratamento.md` (depois do passo 3, modelo em `_modelo/tratamento.md`): para quem, o problema,
-   a ideia em uma frase, **a estrutura desenhada para esta história** (forma da narrativa, abertura, receitas e o
-   porquê; diferente dos dois últimos vídeos em "Estruturas já usadas" do guia), a tabela de tempos, a direção de
-   arte derivada da marca e o princípio tirado de cada referência. Peça aprovação.
+   a ideia em uma frase, **a estrutura desenhada para esta história** (três candidatas e a escolhida, abertura,
+   receitas e o porquê; diferente do vídeo anterior em pelo menos 4 de 6 itens), o que o vídeo não é, a tabela de
+   tempos com o porquê de cada plano e como ele sai, a direção de arte derivada da marca com o significado de cada
+   cor, e o princípio tirado de cada referência. Peça aprovação.
 4. Construa uma **prova de 15 a 20 s** com o momento central e peça aprovação antes do vídeo completo.
    Só então detalhe `roteiro.md` com a narração.
 
@@ -75,7 +76,11 @@ Se houver narração, siga a skill `narracao`: grave, rode `PLAN_ONLY=1 bun run 
    Revise como editor, com quadros a cada 0,5 s do MP4. Pergunte: o ritmo de leitura está certo? Todo
    quadro tem um centro claro? A câmera está viva? Há dois movimentos competindo? O fecho segura demais?
 3. `bun run render <slug>` (em segundo plano; leva minutos) e, se narrado, `bun run narrar <slug>`.
-4. `ffprobe` (quadros, duração, áudio) e LUFS (`ffmpeg -af ebur128=peak=true`), alvo −14.
-5. Folha de contato do MP4 final, entrega dos arquivos e um resumo do que é real e do que é ilustrativo.
-6. Registre no README da pasta do vídeo (ou em `roteiro.md`) as decisões e os dados usados.
-7. Acrescente o vídeo à tabela "Estruturas já usadas" do guia (forma, abertura e fecho).
+4. `bun run conferir <slug>` e `bun run audio <slug>` (guia, seção 10): trechos parados, quadros vazios, saltos,
+   pops, silêncios, LUFS (alvo −14), pico real e som atrasado. Responda a cada linha do relatório: "planejado,
+   porque..." ou corrija. Use os tempos do relatório em `bun run folha` para olhar cada achado.
+5. Revisão final por um subagente de contexto limpo (guia, seção 10): MP4, quadros a cada 0,5 s, tratamento,
+   roteiro, relatório do `conferir` e as regras, sem o histórico. Corrija o que ele marcar com ✗.
+6. Folha de contato do MP4 final, entrega dos arquivos e um resumo do que é real e do que é ilustrativo.
+7. Registre no README da pasta do vídeo (ou em `roteiro.md`) as decisões e os dados usados.
+8. Acrescente o vídeo à tabela "Estruturas já usadas" do guia (forma, abertura e fecho).

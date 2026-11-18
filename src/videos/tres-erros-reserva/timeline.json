@@ -1,0 +1,22 @@
+{
+	"fps": 30,
+	"width": 1080,
+	"height": 1920,
+	"bpm": 90,
+	"beat": 20,
+	"scenes": [
+		{
+			"id": "tres-erros-reserva",
+			"duration": 600
+		}
+	],
+	"transitions": [],
+	"marks": {
+		"inicio": 0.3,
+		"erro1": 4.5,
+		"erro2": 12.8,
+		"erro3": 21,
+		"fecho": 27,
+		"fim": 30
+	}
+}
